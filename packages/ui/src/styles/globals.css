@@ -1,0 +1,396 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
+@import "@fontsource-variable/inter";
+@import "./typeset.css";
+
+@custom-variant dark (&:is(.dark *));
+@source "../**/*.{js,ts,tsx}";
+
+@theme {
+  --shadow-tooltip: 0 12px 24px 0 #0e121b0f, 0 1px 2px 0 #0e121b08;
+  /* Untitled UI skeuomorphic edge, for FancyButton. */
+  --shadow-skeuomorphic:
+    0px 0px 0px 1px rgba(0, 0, 0, 0.18) inset, 0px -2px 0px 0px rgba(0, 0, 0, 0.05) inset;
+  --shadow-xs-skeuomorphic: var(--shadow-skeuomorphic), 0px 1px 2px rgba(10, 13, 18, 0.05);
+}
+
+@theme inline {
+  /* AlignUI focus rings: a 2px background gap, then a 4px tint. Inline so the
+     colours follow the element's theme (light/dark), not :root. */
+  --shadow-button-primary-focus:
+    0 0 0 2px var(--background), 0 0 0 4px color-mix(in oklab, var(--primary) 10%, transparent);
+  --shadow-button-important-focus:
+    0 0 0 2px var(--background), 0 0 0 4px color-mix(in oklab, var(--foreground) 16%, transparent);
+  --shadow-button-error-focus:
+    0 0 0 2px var(--background), 0 0 0 4px color-mix(in oklab, var(--destructive) 10%, transparent);
+  --font-heading: var(--font-sans);
+  --color-sidebar-ring: var(--sidebar-ring);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar: var(--sidebar);
+  --color-chart-5: var(--chart-5);
+  --color-chart-4: var(--chart-4);
+  --color-chart-3: var(--chart-3);
+  --color-chart-2: var(--chart-2);
+  --color-chart-1: var(--chart-1);
+  --color-ring: var(--ring);
+  --color-input: var(--input);
+  --color-border: var(--border);
+  --color-destructive: var(--destructive);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-accent: var(--accent);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-muted: var(--muted);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-secondary: var(--secondary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-primary: var(--primary);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-popover: var(--popover);
+  --color-card-foreground: var(--card-foreground);
+  --color-card: var(--card);
+  --color-foreground: var(--foreground);
+  --color-background: var(--background);
+  --color-canvas: var(--canvas);
+  --color-elevated: var(--elevated);
+  --radius-sm: calc(var(--radius) * 0.6);
+  --radius-md: calc(var(--radius) * 0.8);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) * 1.4);
+  --radius-2xl: calc(var(--radius) * 1.8);
+  --radius-3xl: calc(var(--radius) * 2.2);
+  --radius-4xl: calc(var(--radius) * 2.6);
+  --font-sans: "Inter Variable", sans-serif;
+  --color-invert-foreground: var(--invert-foreground);
+  --color-invert: var(--invert);
+  --color-warning-foreground: var(--warning-foreground);
+  --color-warning: var(--warning);
+  --color-info-foreground: var(--info-foreground);
+  --color-info: var(--info);
+  --color-success-foreground: var(--success-foreground);
+  --color-success: var(--success);
+  --color-destructive-foreground: var(--destructive-foreground);
+}
+
+:root {
+  --background: oklch(1 0 0);
+  --canvas: var(--color-mist-50);
+  --elevated: oklch(0.98 0.002 197.1);
+  --foreground: var(--color-mist-950);
+  --card: oklch(1 0 0);
+  --card-foreground: var(--color-mist-950);
+  --popover: oklch(1 0 0);
+  --popover-foreground: var(--color-mist-950);
+  --primary: oklch(0.546 0.245 262.881);
+  --primary-foreground: oklch(0.97 0.014 254.604);
+  --secondary: var(--color-mist-100);
+  --secondary-foreground: var(--color-mist-900);
+  --muted: var(--color-mist-100);
+  --muted-foreground: var(--color-mist-500);
+  --accent: var(--color-mist-100);
+  --accent-foreground: var(--color-mist-900);
+  --destructive: oklch(0.577 0.245 27.325);
+  --border: var(--color-mist-200);
+  --input: var(--color-mist-200);
+  --ring: var(--color-mist-400);
+  --chart-1: oklch(0.828 0.111 230.318);
+  --chart-2: oklch(0.685 0.169 237.323);
+  --chart-3: oklch(0.588 0.158 241.966);
+  --chart-4: oklch(0.5 0.134 242.749);
+  --chart-5: oklch(0.443 0.11 240.79);
+  --radius: 0.625rem;
+  --sidebar: var(--color-mist-50);
+  --sidebar-foreground: var(--color-mist-950);
+  --sidebar-primary: oklch(0.546 0.245 262.881);
+  --sidebar-primary-foreground: oklch(0.97 0.014 254.604);
+  --sidebar-accent: var(--color-mist-100);
+  --sidebar-accent-foreground: var(--color-mist-900);
+  --sidebar-border: var(--color-mist-200);
+  --sidebar-ring: var(--color-mist-400);
+  --destructive-foreground: var(--color-red-800);
+  --success: var(--color-emerald-500);
+  --success-foreground: var(--color-emerald-900);
+  --info: var(--color-violet-500);
+  --info-foreground: var(--color-violet-900);
+  --warning: var(--color-yellow-500);
+  --warning-foreground: var(--color-yellow-900);
+  --invert: var(--color-mist-900);
+  --invert-foreground: var(--color-mist-50);
+}
+
+.dark {
+  --background: var(--color-mist-950);
+  --canvas: var(--color-mist-950);
+  --elevated: oklch(0.18 0.006 226);
+  --foreground: var(--color-mist-50);
+  --card: var(--color-mist-900);
+  --card-foreground: var(--color-mist-50);
+  --popover: var(--color-mist-900);
+  --popover-foreground: var(--color-mist-50);
+  --primary: oklch(0.623 0.214 259.815);
+  --primary-foreground: oklch(0.97 0.014 254.604);
+  --secondary: var(--color-mist-800);
+  --secondary-foreground: var(--color-mist-50);
+  --muted: var(--color-mist-800);
+  --muted-foreground: var(--color-mist-400);
+  --accent: var(--color-mist-800);
+  --accent-foreground: var(--color-mist-50);
+  --destructive: oklch(0.704 0.191 22.216);
+  --border: oklch(1 0 0 / 10%);
+  --input: oklch(1 0 0 / 15%);
+  --ring: var(--color-mist-500);
+  --chart-1: oklch(0.828 0.111 230.318);
+  --chart-2: oklch(0.685 0.169 237.323);
+  --chart-3: oklch(0.588 0.158 241.966);
+  --chart-4: oklch(0.5 0.134 242.749);
+  --chart-5: oklch(0.443 0.11 240.79);
+  --sidebar: var(--color-mist-900);
+  --sidebar-foreground: var(--color-mist-50);
+  --sidebar-primary: oklch(0.623 0.214 259.815);
+  --sidebar-primary-foreground: oklch(0.97 0.014 254.604);
+  --sidebar-accent: var(--color-mist-800);
+  --sidebar-accent-foreground: var(--color-mist-50);
+  --sidebar-border: oklch(1 0 0 / 10%);
+  --sidebar-ring: var(--color-mist-500);
+  --destructive-foreground: var(--color-red-600);
+  --success: var(--color-emerald-500);
+  --success-foreground: var(--color-emerald-600);
+  --info: var(--color-violet-500);
+  --info-foreground: var(--color-violet-600);
+  --warning: var(--color-yellow-500);
+  --warning-foreground: var(--color-yellow-600);
+  --invert: var(--color-mist-700);
+  --invert-foreground: var(--color-mist-50);
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+    /* Set per element (not inherited from body) so the em scales with each text size. */
+    text-underline-offset: 0.2em;
+  }
+  body {
+    position: relative;
+    @apply bg-background tracking-[-0.01em] text-foreground antialiased;
+  }
+}
+
+@layer utilities {
+  .content-scrollbar {
+    scrollbar-width: thin;
+    scrollbar-gutter: stable;
+    scrollbar-color: var(--muted-foreground) transparent;
+  }
+
+  .sidebar-scrollbar {
+    scrollbar-width: thin;
+    scrollbar-gutter: stable;
+    scrollbar-color: transparent transparent;
+  }
+
+  .sidebar-scrollbar:hover,
+  .sidebar-scrollbar:focus-within {
+    scrollbar-color: var(--muted-foreground) transparent;
+  }
+
+  @media (hover: none) {
+    .sidebar-scrollbar {
+      scrollbar-color: var(--muted-foreground) transparent;
+    }
+  }
+}
+
+@layer components {
+  .typeset-default {
+    --typeset-font-body: var(--font-sans);
+    --typeset-font-heading: var(--font-sans);
+    --typeset-font-mono: var(--font-sans);
+    --typeset-size: 16px;
+    max-width: 70ch;
+  }
+}
+
+/*
+ * Badge palettes — the exact Untitled UI utility shades on stock Tailwind palettes.
+ * Light: 50 fill · 200 ring · 700 text · 500 dot/icon · 400 close icon (100 hover fill).
+ * Dark flips the scale: 950 fill · 800 ring · 300 text · 600 close icon (900 hover fill).
+ * `gray` uses our neutral (mist) and, like Untitled's neutral, steps one shade lighter in dark.
+ */
+@layer components {
+  [data-slot="badge"] {
+    --badge-bg: var(--badge-50);
+    --badge-ring: var(--badge-200);
+    --badge-fg: var(--badge-700);
+    --badge-addon: var(--badge-500);
+    --badge-button: var(--badge-400);
+    --badge-button-hover: var(--badge-100);
+  }
+  .dark [data-slot="badge"] {
+    --badge-bg: var(--badge-950);
+    --badge-ring: var(--badge-800);
+    --badge-fg: var(--badge-300);
+    --badge-button: var(--badge-600);
+    --badge-button-hover: var(--badge-900);
+  }
+  [data-slot="badge"][data-color="gray"] {
+    --badge-50: var(--color-mist-50);
+    --badge-100: var(--color-mist-100);
+    --badge-200: var(--color-mist-200);
+    --badge-300: var(--color-mist-300);
+    --badge-400: var(--color-mist-400);
+    --badge-500: var(--color-mist-500);
+    --badge-600: var(--color-mist-600);
+    --badge-700: var(--color-mist-700);
+    --badge-800: var(--color-mist-700);
+    --badge-900: var(--color-mist-800);
+    --badge-950: var(--color-mist-900);
+  }
+  [data-slot="badge"][data-color="brand"] {
+    --badge-50: var(--color-blue-50);
+    --badge-100: var(--color-blue-100);
+    --badge-200: var(--color-blue-200);
+    --badge-300: var(--color-blue-300);
+    --badge-400: var(--color-blue-400);
+    --badge-500: var(--color-blue-500);
+    --badge-600: var(--color-blue-600);
+    --badge-700: var(--color-blue-700);
+    --badge-800: var(--color-blue-800);
+    --badge-900: var(--color-blue-900);
+    --badge-950: var(--color-blue-950);
+  }
+  [data-slot="badge"][data-color="error"] {
+    --badge-50: var(--color-red-50);
+    --badge-100: var(--color-red-100);
+    --badge-200: var(--color-red-200);
+    --badge-300: var(--color-red-300);
+    --badge-400: var(--color-red-400);
+    --badge-500: var(--color-red-500);
+    --badge-600: var(--color-red-600);
+    --badge-700: var(--color-red-700);
+    --badge-800: var(--color-red-800);
+    --badge-900: var(--color-red-900);
+    --badge-950: var(--color-red-950);
+  }
+  [data-slot="badge"][data-color="warning"] {
+    --badge-50: var(--color-yellow-50);
+    --badge-100: var(--color-yellow-100);
+    --badge-200: var(--color-yellow-200);
+    --badge-300: var(--color-yellow-300);
+    --badge-400: var(--color-yellow-400);
+    --badge-500: var(--color-yellow-500);
+    --badge-600: var(--color-yellow-600);
+    --badge-700: var(--color-yellow-700);
+    --badge-800: var(--color-yellow-800);
+    --badge-900: var(--color-yellow-900);
+    --badge-950: var(--color-yellow-950);
+  }
+  [data-slot="badge"][data-color="success"] {
+    --badge-50: var(--color-green-50);
+    --badge-100: var(--color-green-100);
+    --badge-200: var(--color-green-200);
+    --badge-300: var(--color-green-300);
+    --badge-400: var(--color-green-400);
+    --badge-500: var(--color-green-500);
+    --badge-600: var(--color-green-600);
+    --badge-700: var(--color-green-700);
+    --badge-800: var(--color-green-800);
+    --badge-900: var(--color-green-900);
+    --badge-950: var(--color-green-950);
+  }
+  [data-slot="badge"][data-color="slate"] {
+    --badge-50: var(--color-slate-50);
+    --badge-100: var(--color-slate-100);
+    --badge-200: var(--color-slate-200);
+    --badge-300: var(--color-slate-300);
+    --badge-400: var(--color-slate-400);
+    --badge-500: var(--color-slate-500);
+    --badge-600: var(--color-slate-600);
+    --badge-700: var(--color-slate-700);
+    --badge-800: var(--color-slate-800);
+    --badge-900: var(--color-slate-900);
+    --badge-950: var(--color-slate-950);
+  }
+  [data-slot="badge"][data-color="sky"] {
+    --badge-50: var(--color-sky-50);
+    --badge-100: var(--color-sky-100);
+    --badge-200: var(--color-sky-200);
+    --badge-300: var(--color-sky-300);
+    --badge-400: var(--color-sky-400);
+    --badge-500: var(--color-sky-500);
+    --badge-600: var(--color-sky-600);
+    --badge-700: var(--color-sky-700);
+    --badge-800: var(--color-sky-800);
+    --badge-900: var(--color-sky-900);
+    --badge-950: var(--color-sky-950);
+  }
+  [data-slot="badge"][data-color="blue"] {
+    --badge-50: var(--color-blue-50);
+    --badge-100: var(--color-blue-100);
+    --badge-200: var(--color-blue-200);
+    --badge-300: var(--color-blue-300);
+    --badge-400: var(--color-blue-400);
+    --badge-500: var(--color-blue-500);
+    --badge-600: var(--color-blue-600);
+    --badge-700: var(--color-blue-700);
+    --badge-800: var(--color-blue-800);
+    --badge-900: var(--color-blue-900);
+    --badge-950: var(--color-blue-950);
+  }
+  [data-slot="badge"][data-color="indigo"] {
+    --badge-50: var(--color-indigo-50);
+    --badge-100: var(--color-indigo-100);
+    --badge-200: var(--color-indigo-200);
+    --badge-300: var(--color-indigo-300);
+    --badge-400: var(--color-indigo-400);
+    --badge-500: var(--color-indigo-500);
+    --badge-600: var(--color-indigo-600);
+    --badge-700: var(--color-indigo-700);
+    --badge-800: var(--color-indigo-800);
+    --badge-900: var(--color-indigo-900);
+    --badge-950: var(--color-indigo-950);
+  }
+  [data-slot="badge"][data-color="purple"] {
+    --badge-50: var(--color-purple-50);
+    --badge-100: var(--color-purple-100);
+    --badge-200: var(--color-purple-200);
+    --badge-300: var(--color-purple-300);
+    --badge-400: var(--color-purple-400);
+    --badge-500: var(--color-purple-500);
+    --badge-600: var(--color-purple-600);
+    --badge-700: var(--color-purple-700);
+    --badge-800: var(--color-purple-800);
+    --badge-900: var(--color-purple-900);
+    --badge-950: var(--color-purple-950);
+  }
+  [data-slot="badge"][data-color="pink"] {
+    --badge-50: var(--color-pink-50);
+    --badge-100: var(--color-pink-100);
+    --badge-200: var(--color-pink-200);
+    --badge-300: var(--color-pink-300);
+    --badge-400: var(--color-pink-400);
+    --badge-500: var(--color-pink-500);
+    --badge-600: var(--color-pink-600);
+    --badge-700: var(--color-pink-700);
+    --badge-800: var(--color-pink-800);
+    --badge-900: var(--color-pink-900);
+    --badge-950: var(--color-pink-950);
+  }
+  [data-slot="badge"][data-color="orange"] {
+    --badge-50: var(--color-orange-50);
+    --badge-100: var(--color-orange-100);
+    --badge-200: var(--color-orange-200);
+    --badge-300: var(--color-orange-300);
+    --badge-400: var(--color-orange-400);
+    --badge-500: var(--color-orange-500);
+    --badge-600: var(--color-orange-600);
+    --badge-700: var(--color-orange-700);
+    --badge-800: var(--color-orange-800);
+    --badge-900: var(--color-orange-900);
+    --badge-950: var(--color-orange-950);
+  }
+}

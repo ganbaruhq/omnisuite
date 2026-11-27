@@ -1,0 +1,46 @@
+name: Publish
+# Push a tag to publish: `v0.2.0` publishes every package whose version is not on npm yet,
+# and changesets' per-package tags (`@omnisuite/ui@0.2.0`, from `pnpm changeset tag`) work too.
+# Auth is npm trusted publishing (OIDC): no token, no 2FA prompt. Each package must list this
+# repo and workflow as its trusted publisher on npmjs.com.
+on:
+  push:
+    tags: ["v*", "@omnisuite/*@*"]
+  workflow_dispatch:
+permissions:
+  contents: read
+  id-token: write
+concurrency: publish
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v5
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 12.21.0
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 24
+          cache: pnpm
+          registry-url: https://registry.npmjs.org
+      # Trusted publishing needs npm 11.5.1 or later.
+      - run: cd /tmp && npm install -g npm@latest
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm run build
+      # pnpm pack resolves `workspace:` ranges; npm publishes the tarball over OIDC.
+      - name: Publish unpublished versions
+        run: |
+          # In dependency order: calendar-react depends on calendar-core.
+          for dir in packages/calendar-core packages/calendar-react packages/ui; do
+            name=$(jq -r .name "$dir/package.json"); version=$(jq -r .version "$dir/package.json")
+            if (cd /tmp && npm view "$name@$version" version >/dev/null 2>&1); then
+              echo "$name@$version is already on npm"; continue
+            fi
+            out="$RUNNER_TEMP/pack/$(basename "$dir")"
+            mkdir -p "$out"
+            (cd "$dir" && pnpm pack --pack-destination "$out")
+            # Run npm outside the repo: the root devEngines requires pnpm.
+            (cd "$out" && npm publish ./*.tgz --access public)
+          done

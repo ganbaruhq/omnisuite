@@ -1,0 +1,10 @@
+node_modules/
+dist/
+.vite/
+.vite-plus/
+.vite-task/
+.vitest/
+*.tsbuildinfo
+.DS_Store
+.env*
+storybook-static/

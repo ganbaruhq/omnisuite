@@ -1,0 +1,44 @@
+{
+  "name": "@omnisuite/calendar-react",
+  "version": "0.1.0",
+  "description": "React bindings for @omnisuite/calendar-core.",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ganbaruhq/omnisuite.git",
+    "directory": "packages/calendar-react"
+  },
+  "files": [
+    "dist"
+  ],
+  "type": "module",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@dnd-kit/dom": "^0.5.1",
+    "@dnd-kit/react": "^0.5.1",
+    "@omnisuite/calendar-core": "workspace:^",
+    "@xstate/store-react": "^2.1.0",
+    "effect": "^4.1.5"
+  },
+  "devDependencies": {
+    "@swc/cli": "0.8.1",
+    "@swc/core": "1.16.18",
+    "@types/react": "19.3.0",
+    "react": "19.3.1",
+    "typescript": "7.0.2",
+    "vite-plus": "1.7.0"
+  },
+  "peerDependencies": {
+    "react": "^19.0.0"
+  }
+}

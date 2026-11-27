@@ -1,0 +1,38 @@
+{
+  "name": "omnisuite",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "vp run -r build",
+    "check": "vp run lint && vp run typecheck && vp run test && vp run test:browser",
+    "lint:fix": "vp lint --fix",
+    "format": "vp fmt",
+    "format:check": "vp fmt --check",
+    "changeset": "changeset",
+    "version-packages": "changeset version",
+    "verify-ui-package": "node scripts/verify-ui-package.mjs",
+    "storybook": "vp run @omnisuite/storybook#dev",
+    "release": "vp run -r build && changeset publish"
+  },
+  "devDependencies": {
+    "@changesets/cli": "3.0.3",
+    "@swc/cli": "0.8.1",
+    "@swc/core": "1.16.18",
+    "@types/node": "24.19.2",
+    "@types/react": "19.3.0",
+    "@types/react-dom": "19.3.0",
+    "typescript": "7.0.2",
+    "vite": "npm:@voidzero-dev/vite-plus-core@8.3.8000",
+    "vite-plus": "1.7.0"
+  },
+  "devEngines": {
+    "packageManager": {
+      "name": "pnpm",
+      "version": "12.21.0",
+      "onFail": "download"
+    }
+  },
+  "engines": {
+    "node": ">=24.11.0"
+  }
+}

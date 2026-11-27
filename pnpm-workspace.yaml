@@ -1,0 +1,19 @@
+packages:
+  - apps/*
+  - packages/*
+
+# Packages declare explicit ranges, not `catalog:`: the platform repo consumes this repo as a git
+# submodule inside its own workspace, where this repo's catalog does not exist.
+
+allowBuilds:
+  "@swc/core": true
+  esbuild: true
+
+overrides:
+  vite@*: npm:@voidzero-dev/vite-plus-core@8.3.8000
+
+peerDependencyRules:
+  allowAny:
+    - vite
+  allowedVersions:
+    vite: "*"
