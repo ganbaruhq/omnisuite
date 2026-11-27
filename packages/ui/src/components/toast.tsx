@@ -3,6 +3,7 @@ import { Toast as ToastPrimitive } from "@base-ui/react/toast";
 import { cn } from "cn";
 
 import { Button } from "@omnisuite/ui/components/button";
+import { Avatar, AvatarBadge, AvatarFallback, AvatarImage } from "@omnisuite/ui/components/avatar";
 import { textVariants } from "@omnisuite/ui/components/text";
 import {
   IconX,
@@ -13,7 +14,15 @@ import {
   IconLoader,
 } from "@tabler/icons-react";
 
-const toast = ToastPrimitive.createToastManager();
+type ToastData =
+  | { variant: "icon"; icon?: React.ReactNode }
+  | {
+      variant: "avatar";
+      avatar: { src: string; alt: string; fallback: string };
+      date?: React.ReactNode;
+    };
+
+const toast = ToastPrimitive.createToastManager<ToastData>();
 
 function ToastProvider({ ...props }: ToastPrimitive.Provider.Props) {
   return <ToastPrimitive.Provider {...props} />;
@@ -41,7 +50,7 @@ function Toast({ className, ...props }: ToastPrimitive.Root.Props) {
     <ToastPrimitive.Root
       data-slot="toast"
       className={cn(
-        "group/toast pointer-events-auto absolute right-0 bottom-0 z-[calc(1000-var(--toast-index))] w-full origin-bottom rounded-md border bg-popover text-popover-foreground shadow-lg will-change-transform outline-none select-none focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50",
+        "group/toast pointer-events-auto absolute right-0 bottom-0 z-[calc(1000-var(--toast-index))] w-full origin-bottom rounded-xl border bg-popover text-popover-foreground will-change-transform outline-none select-none focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50",
         "[--gap:0.75rem] [--height:var(--toast-frontmost-height,var(--toast-height))] [--offset-y:calc(var(--toast-offset-y)*-1+calc(var(--toast-index)*var(--gap)*-1)+var(--toast-swipe-movement-y))] [--peek:0.75rem] [--scale:calc(max(0,1-(var(--toast-index)*0.1)))] [--shrink:calc(1-var(--scale))]",
         "h-(--height) [transform:translateX(var(--toast-swipe-movement-x))_translateY(calc(var(--toast-swipe-movement-y)-(var(--toast-index)*var(--peek))-(var(--shrink)*var(--height))))_scale(var(--scale))] [transition:transform_500ms_cubic-bezier(0.22,1,0.36,1),opacity_500ms,height_150ms]",
         "after:absolute after:top-full after:left-0 after:h-[calc(var(--gap)+1px)] after:w-full after:content-['']",
@@ -68,7 +77,7 @@ function ToastContent({ className, ...props }: ToastPrimitive.Content.Props) {
     <ToastPrimitive.Content
       data-slot="toast-content"
       className={cn(
-        "flex h-full items-center gap-3 overflow-hidden p-4 transition-opacity duration-250 ease-[cubic-bezier(0.22,1,0.36,1)] data-behind:opacity-0 data-expanded:opacity-100",
+        "relative flex h-full items-start gap-4 overflow-hidden p-4 pr-10 transition-opacity duration-250 ease-[cubic-bezier(0.22,1,0.36,1)] data-behind:opacity-0 data-expanded:opacity-100",
         className,
       )}
       {...props}
@@ -80,7 +89,7 @@ function ToastTitle({ className, ...props }: ToastPrimitive.Title.Props) {
   return (
     <ToastPrimitive.Title
       data-slot="toast-title"
-      className={cn(textVariants({ variant: "body" }), "font-medium", className)}
+      className={cn(textVariants({ variant: "body" }), "font-semibold break-words", className)}
       {...props}
     />
   );
@@ -90,7 +99,7 @@ function ToastDescription({ className, ...props }: ToastPrimitive.Description.Pr
   return (
     <ToastPrimitive.Description
       data-slot="toast-description"
-      className={cn(textVariants({ variant: "secondary" }), className)}
+      className={cn(textVariants({ variant: "secondary" }), "break-words", className)}
       {...props}
     />
   );
@@ -98,14 +107,14 @@ function ToastDescription({ className, ...props }: ToastPrimitive.Description.Pr
 
 function ToastAction({
   className,
-  render = <Button variant="outline" size="sm" />,
+  render = <Button variant="link" />,
   ...props
 }: ToastPrimitive.Action.Props) {
   return (
     <ToastPrimitive.Action
       data-slot="toast-action"
       render={render}
-      className={cn("shrink-0", className)}
+      className={cn("h-auto shrink-0 p-0 font-semibold", className)}
       {...props}
     />
   );
@@ -133,8 +142,14 @@ function ToastClose({
   );
 }
 
-function ToastIcon({ type }: { type: string | undefined }) {
-  let icon: React.ReactNode = null;
+function ToastIcon({
+  type,
+  icon: customIcon,
+}: {
+  type: string | undefined;
+  icon?: React.ReactNode;
+}) {
+  let icon: React.ReactNode = <IconInfoCircle aria-hidden="true" />;
 
   if (type === "success") {
     icon = <IconCircleCheck aria-hidden="true" />;
@@ -149,40 +164,64 @@ function ToastIcon({ type }: { type: string | undefined }) {
   }
 
   if (type === "error") {
-    icon = <IconAlertOctagon className="text-destructive" aria-hidden="true" />;
+    icon = <IconAlertOctagon aria-hidden="true" />;
   }
 
   if (type === "loading") {
-    icon = <IconLoader className="animate-spin" aria-hidden="true" />;
-  }
-
-  if (!icon) {
-    return null;
+    icon = <IconLoader className="animate-spin motion-reduce:animate-none" aria-hidden="true" />;
   }
 
   return (
     <span
       data-slot="toast-icon"
-      className="shrink-0 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4"
+      aria-hidden="true"
+      className="flex size-10 shrink-0 items-center justify-center rounded-lg border bg-background text-muted-foreground shadow-xs [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-5"
     >
-      {icon}
+      {customIcon ?? icon}
     </span>
   );
 }
 
 function ToastList() {
-  const { toasts } = ToastPrimitive.useToastManager();
+  const { toasts } = ToastPrimitive.useToastManager<ToastData>();
 
   return toasts.map((toastItem) => (
     <Toast key={toastItem.id} toast={toastItem}>
       <ToastContent>
-        <ToastIcon type={toastItem.type} />
+        {toastItem.data?.variant === "avatar" ? (
+          <Avatar size="lg">
+            <AvatarImage src={toastItem.data.avatar.src} alt={toastItem.data.avatar.alt} />
+            <AvatarFallback>{toastItem.data.avatar.fallback}</AvatarFallback>
+            <AvatarBadge className="bg-success-foreground" aria-label="Online" />
+          </Avatar>
+        ) : (
+          <ToastIcon
+            type={toastItem.type}
+            icon={toastItem.data?.variant === "icon" ? toastItem.data.icon : undefined}
+          />
+        )}
         <div className="flex min-w-0 flex-1 flex-col gap-1">
-          <ToastTitle />
-          <ToastDescription />
+          <div className="flex flex-wrap items-baseline gap-x-2 gap-y-1">
+            {toastItem.title && <ToastTitle />}
+            {toastItem.data?.variant === "avatar" && toastItem.data.date && (
+              <span className={textVariants({ variant: "secondary", size: "xs" })}>
+                {toastItem.data.date}
+              </span>
+            )}
+          </div>
+          {toastItem.description && <ToastDescription />}
+          <div className="mt-2 flex flex-wrap items-center gap-3">
+            <ToastClose
+              aria-label="Dismiss"
+              render={<Button variant="link" />}
+              className="h-auto p-0 font-semibold"
+            >
+              Dismiss
+            </ToastClose>
+            {toastItem.actionProps && <ToastAction />}
+          </div>
         </div>
-        <ToastAction />
-        <ToastClose />
+        <ToastClose className="absolute top-3 right-3" />
       </ToastContent>
     </Toast>
   ));
@@ -219,3 +258,4 @@ export {
   toast,
   useToastManager,
 };
+export type { ToastData };
