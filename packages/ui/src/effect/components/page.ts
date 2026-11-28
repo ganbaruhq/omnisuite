@@ -55,7 +55,7 @@ export const PageTitle = <Msg>(
     "page-title",
     ...pageTitleClasses,
     textVariants({ variant: "heading", size: "lg" }),
-  );
+  ).attr("data-variant", "heading");
 };
 
 export const PageDescription = <Msg>(
@@ -67,7 +67,7 @@ export const PageDescription = <Msg>(
     "page-description",
     ...pageDescriptionClasses,
     textVariants({ variant: "secondary" }),
-  );
+  ).attr("data-variant", "secondary");
 };
 
 export const PageActions = <Msg>(
@@ -93,7 +93,7 @@ export const PageSectionTitle = <Msg>(
     "page-section-title",
     ...pageSectionTitleClasses,
     textVariants({ variant: "heading" }),
-  );
+  ).attr("data-variant", "heading");
 };
 
 export const PageBody = <Msg>(

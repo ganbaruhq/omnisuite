@@ -52,8 +52,8 @@ describe("Effect page", () => {
     expect(html).toContain('data-slot="page-body"');
     expect(html).toContain('data-slot="page-aside"');
     expect(html).toContain('data-slot="page-title"');
-    expect(html).toMatch(/<h1[^>]*data-slot="page-title"/);
-    expect(html).toMatch(/<h2[^>]*data-slot="page-section-title"/);
+    expect(html).toMatch(/<h1[^>]*data-slot="page-title"[^>]*data-variant="heading"/);
+    expect(html).toMatch(/<h2[^>]*data-slot="page-section-title"[^>]*data-variant="heading"/);
     expect(html).toContain("sticky");
     expect(html).toContain("font-heading");
     expect(html).toContain("p-9");
