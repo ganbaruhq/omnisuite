@@ -378,7 +378,7 @@ importers:
         specifier: ^0.5.1
         version: 0.5.3
       '@omnisuite/calendar-core':
-        specifier: workspace:*
+        specifier: workspace:^
         version: link:../calendar-core
     devDependencies:
       '@effect/ui':
