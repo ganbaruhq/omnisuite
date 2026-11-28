@@ -1,0 +1,31 @@
+{
+  "name": "@omnisuite/calendar-effect",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Effect UI bindings for @omnisuite/calendar-core (workspace only).",
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@omnisuite/calendar-core": "workspace:*"
+  },
+  "devDependencies": {
+    "@effect/ui": "https://pkg.pr.new/Effect-TS/ui/@effect/ui@dec1ca9f98b9ab7687cd962bf70e488607239fa3",
+    "@omnisuite/calendar-react": "workspace:*",
+    "@types/react": "19.3.0",
+    "@types/react-dom": "19.3.0",
+    "effect": "^4.1.6",
+    "react": "19.3.1",
+    "react-dom": "19.3.1",
+    "typescript": "7.0.2",
+    "vite-plus": "1.7.0"
+  },
+  "peerDependencies": {
+    "@effect/ui": "^0.0.0",
+    "effect": "^4.1.6"
+  }
+}
