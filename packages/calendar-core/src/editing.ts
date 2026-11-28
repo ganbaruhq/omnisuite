@@ -121,12 +121,13 @@ export interface EditCapability {
   readonly edit: boolean;
 }
 
+/** The settings, on an event or on the timeline's `editing`, that say what a gesture may change. */
+type EditableFlags = "startEditable" | "resourceEditable" | "durationEditable";
+
 /** What `event` lets a gesture change; nothing without `editing`. */
 export function editCapabilityOf(
-  event: Pick<CalendarEvent<any>, "startEditable" | "resourceEditable" | "durationEditable">,
-  editing:
-    | Pick<Editing<any>, "startEditable" | "resourceEditable" | "durationEditable">
-    | undefined,
+  event: Pick<CalendarEvent<any>, EditableFlags>,
+  editing: Pick<Editing<any>, EditableFlags> | undefined,
 ): EditCapability {
   const time = editing !== undefined && (event.startEditable ?? editing.startEditable);
   const resource = editing !== undefined && (event.resourceEditable ?? editing.resourceEditable);
