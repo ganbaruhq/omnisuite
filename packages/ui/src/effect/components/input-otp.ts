@@ -4,10 +4,12 @@ import {
   inputOTPContainerClasses,
   inputOTPClasses,
   inputOTPGroupClasses,
-  effectInputOTPSlotClasses,
   inputOTPSeparatorClasses,
 } from "@omnisuite/ui/lib/recipes/input-otp";
 import { restyle, stylePart, styleElementPart, styledSlot } from "@omnisuite/ui/effect/lib/styled";
+
+const slotClasses =
+  "relative flex size-7 items-center justify-center border-y border-r border-input bg-input/20 text-xs/relaxed transition-all outline-none first:rounded-l-md first:border-l last:rounded-r-md aria-invalid:border-destructive data-focused:z-10 data-focused:border-ring data-focused:ring-2 data-focused:ring-ring/30 data-focused:aria-invalid:border-destructive data-focused:aria-invalid:ring-destructive/20 dark:bg-input/30 dark:data-focused:aria-invalid:ring-destructive/40";
 
 export const InputOTPGroup = <Msg>(h: Pick<Html.H<Msg>, "div">) =>
   styledSlot(h.div, "input-otp-group", inputOTPGroupClasses);
@@ -33,7 +35,7 @@ export const InputOTP = restyle(OTPField, (otp) => {
     otp.input,
     "input-otp-slot",
     inputOTPClasses,
-    effectInputOTPSlotClasses,
+    slotClasses,
     "text-center",
   );
   return {

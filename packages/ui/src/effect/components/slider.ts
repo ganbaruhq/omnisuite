@@ -1,27 +1,32 @@
 import type { Html } from "@effect/ui/html";
 import { Slider as KitSlider } from "@effect/ui-kit/Slider";
-import {
-  effectSliderClasses,
-  effectSliderControlClasses,
-  effectSliderTrackClasses,
-  effectSliderRangeClasses,
-  sliderThumbClasses,
-} from "@omnisuite/ui/lib/recipes/slider";
+import { sliderThumbClasses } from "@omnisuite/ui/lib/recipes/slider";
 import { restyle, stylePart, styleElementPart } from "@omnisuite/ui/effect/lib/styled";
 
+const rootClasses = "data-[orientation=horizontal]:w-full data-[orientation=vertical]:h-full";
+
+const controlClasses =
+  "relative flex w-full touch-none items-center select-none data-disabled:opacity-50 data-[orientation=vertical]:h-full data-[orientation=vertical]:min-h-40 data-[orientation=vertical]:w-auto data-[orientation=vertical]:flex-col";
+
+const trackClasses =
+  "relative grow overflow-hidden rounded-md bg-muted select-none data-[orientation=horizontal]:h-1 data-[orientation=horizontal]:w-full data-[orientation=vertical]:h-full data-[orientation=vertical]:w-1";
+
+const rangeClasses =
+  "bg-primary select-none data-[orientation=horizontal]:h-full data-[orientation=vertical]:w-full";
+
 export const Slider = restyle(KitSlider, (slider) => {
-  const root = stylePart(slider.root, "slider", effectSliderClasses);
+  const root = stylePart(slider.root, "slider", rootClasses);
   const control = stylePart(
     slider.control,
     "slider-control",
-    effectSliderControlClasses,
+    controlClasses,
     "data-[orientation=horizontal]:min-h-3",
   );
-  const track = stylePart(slider.track, "slider-track", effectSliderTrackClasses);
+  const track = stylePart(slider.track, "slider-track", trackClasses);
   const indicator = stylePart(
     slider.indicator,
     "slider-range",
-    effectSliderRangeClasses,
+    rangeClasses,
     "absolute data-[orientation=horizontal]:left-(--slider-indicator-start) data-[orientation=horizontal]:w-(--slider-indicator-size) data-[orientation=vertical]:bottom-(--slider-indicator-start) data-[orientation=vertical]:h-(--slider-indicator-size)",
   );
   const thumb = styleElementPart(

@@ -14,6 +14,3 @@ export const inputOTPCaretContainerClasses =
   "pointer-events-none absolute inset-0 flex items-center justify-center";
 
 export const inputOTPCaretClasses = "h-4 w-px animate-caret-blink bg-foreground duration-1000";
-
-export const effectInputOTPSlotClasses =
-  "relative flex size-7 items-center justify-center border-y border-r border-input bg-input/20 text-xs/relaxed transition-all outline-none first:rounded-l-md first:border-l last:rounded-r-md aria-invalid:border-destructive data-focused:z-10 data-focused:border-ring data-focused:ring-2 data-focused:ring-ring/30 data-focused:aria-invalid:border-destructive data-focused:aria-invalid:ring-destructive/20 dark:bg-input/30 dark:data-focused:aria-invalid:ring-destructive/40";

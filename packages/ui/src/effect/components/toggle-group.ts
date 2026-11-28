@@ -1,13 +1,15 @@
 import type { View } from "@effect/ui";
 import type { Html } from "@effect/ui/html";
 import { ToggleGroup as KitToggleGroup } from "@effect/ui-kit/ToggleGroup";
-import {
-  effectToggleGroupClasses as rootClasses,
-  effectToggleGroupItemClasses as itemClasses,
-} from "@omnisuite/ui/lib/recipes/toggle-group";
 import { toggleVariants } from "@omnisuite/ui/lib/recipes/toggle";
 import type { ToggleVariant, ToggleSize } from "@omnisuite/ui/effect/components/toggle";
 import { restyle, styledSlot } from "@omnisuite/ui/effect/lib/styled";
+
+const rootClasses =
+  "group/toggle-group flex w-fit flex-row items-center gap-[--spacing(var(--gap))] rounded-md data-[size=lg]:rounded-lg data-[size=xs]:rounded-[min(var(--radius-md),8px)] data-[orientation=vertical]:flex-col data-[orientation=vertical]:items-stretch";
+
+const itemClasses =
+  "shrink-0 group-data-[spacing=0]/toggle-group:rounded-none group-data-[spacing=0]/toggle-group:px-2 focus:z-10 focus-visible:z-10 group-data-[spacing=0]/toggle-group:has-data-[icon=inline-end]:pr-1.5 group-data-[spacing=0]/toggle-group:has-data-[icon=inline-start]:pl-1.5 group-data-[orientation=horizontal]/toggle-group:data-[spacing=0]:first:rounded-l-md group-data-[orientation=vertical]/toggle-group:data-[spacing=0]:first:rounded-t-md group-data-[orientation=horizontal]/toggle-group:data-[spacing=0]:last:rounded-r-md group-data-[orientation=vertical]/toggle-group:data-[spacing=0]:last:rounded-b-md group-data-[orientation=horizontal]/toggle-group:data-[spacing=0]:data-[variant=outline]:border-l-0 group-data-[orientation=vertical]/toggle-group:data-[spacing=0]:data-[variant=outline]:border-t-0 group-data-[orientation=horizontal]/toggle-group:data-[spacing=0]:data-[variant=outline]:first:border-l group-data-[orientation=vertical]/toggle-group:data-[spacing=0]:data-[variant=outline]:first:border-t";
 
 interface StyleOptions {
   readonly variant?: ToggleVariant;
