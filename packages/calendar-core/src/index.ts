@@ -45,9 +45,12 @@ export { snapStepResult, snapToGrid, type SnapStep } from "./snap.js";
 export type { EditConstraint, EditConstraintInput } from "./constraint.js";
 export {
   decodeEditingResult,
+  editCapabilityOf,
   evaluateMove,
   evaluateResize,
   previewLayout,
+  resizableEdgesOf,
+  type EditCapability,
   type EditContext,
   type EditEvaluation,
   type Editing,
@@ -60,6 +63,16 @@ export {
   type ResizeEdge,
   type ResizeRequest,
 } from "./editing.js";
+export {
+  cancelMessageOf,
+  describePreviewInEnglish,
+  editFingerprintOf,
+  evaluationKeyOf,
+  previewDescriptionOf,
+  unchangedMessageOf,
+  untargetedMessageOf,
+  type PreviewDescription,
+} from "./edit-text.js";
 export {
   editGestureLogic,
   type EditCancelReason,

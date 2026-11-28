@@ -6,6 +6,7 @@ import {
   expansionToggleOf,
   laneLabelOf,
   placementBoxOf,
+  resizableEdgesOf,
   slotBoxOf,
   resourceHierarchyLogic,
   visibleTimelineRows,
@@ -528,10 +529,7 @@ function EditableEvent({
   const movable = editor.canMove(placement.event);
   const resizable = editor.canResize(placement.event);
   // Only an actual endpoint of the event can be resized, not one that the range clips.
-  const edges = {
-    start: resizable && !placement.startsBefore,
-    end: resizable && !placement.endsAfter,
-  };
+  const edges = resizableEdgesOf(placement, resizable);
   const { ref: draggableRef } = useDraggable({
     id: occurrenceId,
     data: { eventId: placement.event.id, resourceId: placement.resourceId },
@@ -649,8 +647,8 @@ function ResizeHandle({
   const editor = useContext(EditorContext);
   if (
     !placement ||
-    !editor?.canResize(placement.event) ||
-    (edge === "start" ? placement.startsBefore : placement.endsAfter)
+    !editor ||
+    !resizableEdgesOf(placement, editor.canResize(placement.event))[edge]
   )
     return null;
   return (
