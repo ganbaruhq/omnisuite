@@ -1,0 +1,23 @@
+{
+  "name": "@omnisuite/ui-effect-example",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vp dev --port 3003",
+    "build": "vp build",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@effect/ui": "https://pkg.pr.new/Effect-TS/ui/@effect/ui@dec1ca9f98b9ab7687cd962bf70e488607239fa3",
+    "@effect/ui-kit": "https://pkg.pr.new/Effect-TS/ui/@effect/ui-kit@dec1ca9f98b9ab7687cd962bf70e488607239fa3",
+    "@omnisuite/ui": "workspace:*",
+    "effect": "^4.1.6"
+  },
+  "devDependencies": {
+    "@tailwindcss/vite": "4.3.5",
+    "tailwindcss": "4.3.5",
+    "vite": "npm:@voidzero-dev/vite-plus-core@8.3.8000",
+    "vite-plus": "1.7.0"
+  }
+}

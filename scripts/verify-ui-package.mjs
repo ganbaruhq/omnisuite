@@ -88,6 +88,26 @@ const published = await readFile(
 );
 assert.doesNotMatch(published, /catalog:|workspace:/);
 assert.match(published, /dist\/components\/\*\.js/);
+// The Effect components stay workspace-only until Effect UI has a tagged release.
+const publishedExports = JSON.parse(published).exports;
+assert.ok(
+  !Object.keys(publishedExports).some((key) => key.startsWith("./effect")),
+  "The packed package must not export the Effect components.",
+);
+async function listFiles(dir) {
+  const entries = await readdir(dir, { withFileTypes: true });
+  const nested = await Promise.all(
+    entries.map((entry) =>
+      entry.isDirectory() ? listFiles(join(dir, entry.name)) : [join(dir, entry.name)],
+    ),
+  );
+  return nested.flat();
+}
+const packedRoot = join(fixture, "node_modules", "@omnisuite", "ui");
+const effectFiles = (await listFiles(packedRoot)).filter((file) =>
+  /[\\/]effect[\\/]/.test(file.slice(packedRoot.length)),
+);
+assert.deepEqual(effectFiles, [], "The packed package must not ship Effect files.");
 run(["exec", "tsc"], fixture);
 assert.equal(
   spawnSync(process.execPath, ["build.mjs"], { cwd: fixture, stdio: "inherit" }).status,
