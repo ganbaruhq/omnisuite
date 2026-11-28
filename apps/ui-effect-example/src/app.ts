@@ -1,3 +1,4 @@
+import { CollectionDetail } from "./pages/collection-detail";
 import { UiSchema, Validation } from "@effect/ui";
 import { Html } from "@effect/ui/html";
 import { Option, Schema } from "effect";
@@ -18,6 +19,8 @@ import { Textarea } from "@omnisuite/ui/effect/components/textarea";
 import { ToastProvider } from "@omnisuite/ui/effect/components/toast";
 import { Tooltip } from "@omnisuite/ui/effect/components/tooltip";
 import { CalendarPage } from "./calendar/page";
+import { ChoiceControls } from "./pages/choice-controls";
+import { CollectionList } from "./pages/collection-list";
 
 // ---------------------------------------------------------------------------
 // The form's rules
@@ -233,11 +236,15 @@ const Workspace = Html.component({
         Settled: () => undefined,
       },
       view: (dialog) =>
-        h.main.class("mx-auto flex min-h-svh max-w-2xl flex-col items-start gap-6 p-10").children(
+        h.main.class("mx-auto flex max-w-2xl flex-col items-start gap-6 p-10").children(
           h.div
             .class("flex flex-col gap-1")
             .children(
-              h.h1.class("text-xl font-semibold").children("Collections"),
+              h.h1.attr("id", "collections").class("text-xl font-semibold").children("Collections"),
+              h.a
+                .attr("href", "#collection-detail")
+                .class("text-sm text-primary underline underline-offset-4")
+                .children("View collection detail example"),
               h.p
                 .class("text-sm text-muted-foreground")
                 .children(
@@ -321,6 +328,14 @@ export const App = Html.component({
   update: ($) => $.model,
   view: (h) =>
     ToastProvider(h, {
-      view: (toastProvider) => h.div(Workspace(h, {}), CalendarPage(h), toastProvider.toaster(h)),
+      view: (toastProvider) =>
+        h.div(
+          Workspace(h, {}),
+          CollectionDetail(h, {}),
+          ChoiceControls(h, {}),
+          CollectionList(h, {}),
+          CalendarPage(h),
+          toastProvider.toaster(h),
+        ),
     }),
 });

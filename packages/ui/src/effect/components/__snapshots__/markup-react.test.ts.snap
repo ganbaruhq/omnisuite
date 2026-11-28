@@ -1,0 +1,336 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`preserves React class output during recipe extraction > Badge 1`] = `
+[
+  "class="group/badge relative inline-flex w-fit shrink-0 items-center font-medium whitespace-nowrap ring-1 ring-inset bg-(--badge-bg) text-(--badge-fg) ring-(--badge-ring) outline-ring outline-offset-2 focus-visible:outline-2 [&amp;&gt;svg]:pointer-events-none [&amp;&gt;svg]:size-3 [&amp;&gt;svg]:shrink-0 [&amp;&gt;svg]:stroke-3 [&amp;&gt;svg]:text-(--badge-addon) [&amp;&gt;[data-slot=status-dot]]:size-2 [&amp;&gt;[data-slot=status-dot]]:border [&amp;&gt;[data-slot=status-dot]]:border-transparent [&amp;&gt;[data-slot=status-dot]]:bg-clip-padding has-data-[slot=badge-button]:gap-0.5 rounded-full py-0.5 text-sm/5 has-data-[slot=badge-button]:pr-1 has-data-[icon=only]:p-1.5 gap-1.5 px-2.5 has-[[data-slot$=dot]]:pl-2 has-data-[icon]:gap-1 has-data-[icon=inline-start]:pl-2 has-data-[icon=inline-end]:pr-2 has-data-[slot=badge-image]:pl-1"",
+]
+`;
+
+exports[`preserves React class output during recipe extraction > BadgeDot 1`] = `
+[
+  "class="size-2 shrink-0 rounded-full border border-transparent bg-(--badge-addon) bg-clip-padding"",
+]
+`;
+
+exports[`preserves React class output during recipe extraction > BadgeImage 1`] = `
+[
+  "class="size-4 max-w-none shrink-0 rounded-full object-cover"",
+]
+`;
+
+exports[`preserves React class output during recipe extraction > Breadcrumb 1`] = `
+[
+  "class=""",
+]
+`;
+
+exports[`preserves React class output during recipe extraction > BreadcrumbEllipsis 1`] = `
+[
+  "class="flex size-4 items-center justify-center [&amp;&gt;svg]:size-3.5"",
+  "class="tabler-icon tabler-icon-dots"",
+  "class="sr-only"",
+]
+`;
+
+exports[`preserves React class output during recipe extraction > BreadcrumbItem 1`] = `
+[
+  "class="inline-flex items-center gap-1"",
+]
+`;
+
+exports[`preserves React class output during recipe extraction > BreadcrumbLink 1`] = `
+[
+  "class="transition-colors hover:text-foreground"",
+]
+`;
+
+exports[`preserves React class output during recipe extraction > BreadcrumbList 1`] = `
+[
+  "class="flex flex-wrap items-center gap-1.5 text-sm wrap-break-word text-muted-foreground"",
+]
+`;
+
+exports[`preserves React class output during recipe extraction > BreadcrumbPage 1`] = `
+[
+  "class="font-normal text-foreground"",
+]
+`;
+
+exports[`preserves React class output during recipe extraction > BreadcrumbSeparator 1`] = `
+[
+  "class="[&amp;&gt;svg]:size-3.5"",
+  "class="tabler-icon tabler-icon-chevron-right"",
+]
+`;
+
+exports[`preserves React class output during recipe extraction > ButtonGroup 1`] = `
+[
+  "class="flex w-fit items-stretch *:focus-visible:relative *:focus-visible:z-10 has-[&gt;[data-slot=button-group]]:gap-1.5 has-[select[aria-hidden=true]:last-child]:[&amp;&gt;[data-slot=select-trigger]:last-of-type]:rounded-r-md [&amp;&gt;[data-slot=select-trigger]:not([class*=&#x27;w-&#x27;])]:w-fit [&amp;&gt;input]:flex-1 *:data-slot:rounded-r-none [&amp;&gt;[data-slot]:not(:has(~[data-slot]))]:rounded-r-md! [&amp;&gt;[data-slot]~[data-slot]]:rounded-l-none [&amp;&gt;[data-slot]~[data-slot]]:border-l-0"",
+]
+`;
+
+exports[`preserves React class output during recipe extraction > ButtonGroupSeparator 1`] = `
+[
+  "class="shrink-0 data-horizontal:h-px data-vertical:w-px data-vertical:self-stretch relative self-stretch bg-input data-horizontal:mx-px data-horizontal:w-auto data-vertical:my-px data-vertical:h-auto"",
+]
+`;
+
+exports[`preserves React class output during recipe extraction > ButtonGroupText 1`] = `
+[
+  "class="flex items-center gap-2 rounded-md border bg-muted px-2.5 text-xs/relaxed font-medium [&amp;_svg]:pointer-events-none [&amp;_svg:not([class*=&#x27;size-&#x27;])]:size-4"",
+]
+`;
+
+exports[`preserves React class output during recipe extraction > Card 1`] = `
+[
+  "class="group/card flex flex-col gap-(--card-spacing) overflow-hidden rounded-lg bg-card py-(--card-spacing) text-sm text-card-foreground ring-1 ring-foreground/10 [--card-spacing:--spacing(4)] has-[&gt;img:first-child]:pt-0 data-[size=sm]:[--card-spacing:--spacing(3)] *:[img:first-child]:rounded-t-lg *:[img:last-child]:rounded-b-lg"",
+]
+`;
+
+exports[`preserves React class output during recipe extraction > CardAction 1`] = `
+[
+  "class="col-start-2 row-span-2 row-start-1 self-start justify-self-end"",
+]
+`;
+
+exports[`preserves React class output during recipe extraction > CardContent 1`] = `
+[
+  "class="px-(--card-spacing)"",
+]
+`;
+
+exports[`preserves React class output during recipe extraction > CardDescription 1`] = `
+[
+  "class="text-muted-foreground text-sm"",
+]
+`;
+
+exports[`preserves React class output during recipe extraction > CardFooter 1`] = `
+[
+  "class="flex items-center rounded-b-lg px-(--card-spacing) [.border-t]:pt-(--card-spacing)"",
+]
+`;
+
+exports[`preserves React class output during recipe extraction > CardHeader 1`] = `
+[
+  "class="group/card-header @container/card-header grid auto-rows-min items-start gap-1 rounded-t-lg px-(--card-spacing) has-data-[slot=card-action]:grid-cols-[1fr_auto] has-data-[slot=card-description]:grid-rows-[auto_auto] [.border-b]:pb-(--card-spacing)"",
+]
+`;
+
+exports[`preserves React class output during recipe extraction > CardTitle 1`] = `
+[
+  "class="font-heading font-semibold text-foreground text-base"",
+]
+`;
+
+exports[`preserves React class output during recipe extraction > Empty 1`] = `
+[
+  "class="flex w-full min-w-0 flex-1 flex-col items-center justify-center gap-4 rounded-xl border-dashed p-6 text-center text-balance"",
+]
+`;
+
+exports[`preserves React class output during recipe extraction > EmptyContent 1`] = `
+[
+  "class="flex w-full max-w-sm min-w-0 flex-col items-center gap-2 text-sm/relaxed text-balance"",
+]
+`;
+
+exports[`preserves React class output during recipe extraction > EmptyDescription 1`] = `
+[
+  "class="text-muted-foreground text-sm leading-relaxed [&amp;&gt;a]:underline [&amp;&gt;a:hover]:text-primary"",
+]
+`;
+
+exports[`preserves React class output during recipe extraction > EmptyHeader 1`] = `
+[
+  "class="flex max-w-sm flex-col items-center gap-1"",
+]
+`;
+
+exports[`preserves React class output during recipe extraction > EmptyMedia 1`] = `
+[
+  "class="mb-2 flex shrink-0 items-center justify-center [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 bg-transparent"",
+]
+`;
+
+exports[`preserves React class output during recipe extraction > EmptyTitle 1`] = `
+[
+  "class="font-heading font-semibold text-foreground text-base tracking-tight"",
+]
+`;
+
+exports[`preserves React class output during recipe extraction > InputGroup 1`] = `
+[
+  "class="[--control-height:calc(var(--spacing)*8)] [--control-px:calc(var(--spacing)*2.5)] data-[size=xs]:[--control-height:calc(var(--spacing)*6)] data-[size=xs]:[--control-px:calc(var(--spacing)*2)] data-[size=sm]:[--control-height:calc(var(--spacing)*7)] data-[size=sm]:[--control-px:calc(var(--spacing)*2)] data-[size=md]:[--control-height:calc(var(--spacing)*9)] data-[size=md]:[--control-px:calc(var(--spacing)*3)] data-[size=lg]:[--control-height:calc(var(--spacing)*10)] data-[size=lg]:[--control-px:calc(var(--spacing)*3.5)] h-(--control-height) data-[size=lg]:rounded-lg group/input-group relative flex w-full min-w-0 items-center rounded-md border border-input bg-input/20 transition-colors outline-none in-data-[slot=combobox-content]:focus-within:border-inherit in-data-[slot=combobox-content]:focus-within:ring-0 has-data-[align=block-end]:rounded-md has-data-[align=block-start]:rounded-md has-[[data-slot=input-group-control]:focus-visible]:border-ring has-[[data-slot=input-group-control]:focus-visible]:ring-2 has-[[data-slot=input-group-control]:focus-visible]:ring-ring/30 has-[[data-slot][aria-invalid=true]]:border-destructive has-[[data-slot][aria-invalid=true]]:ring-2 has-[[data-slot][aria-invalid=true]]:ring-destructive/20 has-[textarea]:rounded-md has-[&gt;[data-align=block-end]]:h-auto has-[&gt;[data-align=block-end]]:flex-col has-[&gt;[data-align=block-start]]:h-auto has-[&gt;[data-align=block-start]]:flex-col has-[&gt;textarea]:h-auto dark:bg-input/30 dark:has-[[data-slot][aria-invalid=true]]:ring-destructive/40 has-[&gt;[data-align=block-end]]:[&amp;&gt;input]:pt-3 has-[&gt;[data-align=block-start]]:[&amp;&gt;input]:pb-3 has-[&gt;[data-align=inline-end]]:[&amp;&gt;input]:pr-1.5 has-[&gt;[data-align=inline-start]]:[&amp;&gt;input]:pl-1.5"",
+]
+`;
+
+exports[`preserves React class output during recipe extraction > InputGroupAddon 1`] = `
+[
+  "class="flex h-auto cursor-text items-center justify-center gap-1 py-2 text-xs/relaxed font-medium text-muted-foreground select-none group-data-[disabled=true]/input-group:opacity-50 **:data-[slot=kbd]:rounded-[calc(var(--radius-sm)-2px)] **:data-[slot=kbd]:bg-muted-foreground/10 **:data-[slot=kbd]:px-1 **:data-[slot=kbd]:text-[0.625rem] [&amp;&gt;svg:not([class*=&#x27;size-&#x27;])]:size-3.5 order-first pl-(--control-px) has-[&gt;button]:ml-[-0.275rem] has-[&gt;kbd]:ml-[-0.275rem]"",
+]
+`;
+
+exports[`preserves React class output during recipe extraction > InputGroupButton 1`] = `
+[
+  "class="group/button relative shrink-0 cursor-pointer justify-center border border-transparent bg-clip-padding font-medium whitespace-nowrap select-none outline-none transition duration-200 ease-out disabled:pointer-events-none disabled:bg-muted disabled:text-muted-foreground/60 disabled:border-transparent disabled:shadow-none aria-invalid:border-destructive [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 [&amp;_svg:not([class*=&#x27;size-&#x27;])]:size-4 [&amp;&gt;[data-icon=inline-start]]:-ml-0.5 [&amp;&gt;[data-icon=inline-end]]:-mr-0.5 text-muted-foreground hover:bg-muted hover:text-foreground focus-visible:border-foreground focus-visible:bg-background focus-visible:text-foreground focus-visible:shadow-button-important-focus aria-expanded:bg-muted aria-expanded:text-foreground flex items-center text-xs/relaxed shadow-none h-5 gap-1 rounded-[calc(var(--radius-sm)-2px)] px-1 [&amp;&gt;svg:not([class*=&#x27;size-&#x27;])]:size-3"",
+]
+`;
+
+exports[`preserves React class output during recipe extraction > InputGroupInput 1`] = `
+[
+  "class="[--control-height:calc(var(--spacing)*8)] data-[size=xs]:[--control-height:calc(var(--spacing)*6)] data-[size=xs]:[--control-px:calc(var(--spacing)*2)] data-[size=sm]:[--control-height:calc(var(--spacing)*7)] data-[size=sm]:[--control-px:calc(var(--spacing)*2)] data-[size=md]:[--control-height:calc(var(--spacing)*9)] data-[size=md]:[--control-px:calc(var(--spacing)*3)] data-[size=lg]:[--control-height:calc(var(--spacing)*10)] data-[size=lg]:[--control-px:calc(var(--spacing)*3.5)] data-[size=lg]:rounded-lg w-full min-w-0 border-input px-(--control-px) py-0.5 text-sm tracking-normal transition-colors outline-none file:inline-flex file:h-6 file:border-0 file:bg-transparent file:text-xs/relaxed file:font-medium file:text-foreground placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-ring/30 disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50 aria-invalid:border-destructive aria-invalid:ring-destructive/20 md:text-xs/relaxed dark:aria-invalid:border-destructive/50 dark:aria-invalid:ring-destructive/40 h-full flex-1 rounded-none border-0 bg-transparent shadow-none ring-0 [--control-px:inherit] focus-visible:ring-0 aria-invalid:ring-0 dark:bg-transparent"",
+]
+`;
+
+exports[`preserves React class output during recipe extraction > InputGroupText 1`] = `
+[
+  "class="flex items-center gap-2 text-xs/relaxed text-muted-foreground [&amp;_svg]:pointer-events-none [&amp;_svg:not([class*=&#x27;size-&#x27;])]:size-4"",
+]
+`;
+
+exports[`preserves React class output during recipe extraction > InputGroupTextarea 1`] = `
+[
+  "class="flex field-sizing-content min-h-16 w-full border-input text-sm transition-colors outline-none placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-ring/30 disabled:cursor-not-allowed disabled:opacity-50 aria-invalid:border-destructive aria-invalid:ring-destructive/20 md:text-xs/relaxed dark:aria-invalid:border-destructive/50 dark:aria-invalid:ring-destructive/40 flex-1 resize-none rounded-none border-0 bg-transparent px-(--control-px) py-2 shadow-none ring-0 focus-visible:ring-0 aria-invalid:ring-0 dark:bg-transparent"",
+]
+`;
+
+exports[`preserves React class output during recipe extraction > Kbd 1`] = `
+[
+  "class="pointer-events-none inline-flex h-5 w-fit min-w-5 items-center justify-center gap-1 rounded-xs bg-muted px-1 font-sans text-xs font-medium text-muted-foreground select-none in-data-[slot=tooltip-content]:bg-background/20 in-data-[slot=tooltip-content]:text-background dark:in-data-[slot=tooltip-content]:bg-background/10 [&amp;_svg:not([class*=&#x27;size-&#x27;])]:size-3"",
+]
+`;
+
+exports[`preserves React class output during recipe extraction > KbdGroup 1`] = `
+[
+  "class="inline-flex items-center gap-1"",
+]
+`;
+
+exports[`preserves React class output during recipe extraction > LayerCard 1`] = `
+[
+  "class="flex w-full min-w-0 flex-col overflow-hidden rounded-lg bg-elevated text-sm shadow-xs ring ring-border"",
+]
+`;
+
+exports[`preserves React class output during recipe extraction > LayerCardPrimary 1`] = `
+[
+  "class="relative flex shrink-0 flex-col gap-2 overflow-hidden rounded-lg bg-background p-4 pr-3 ring ring-border transition-colors duration-100"",
+]
+`;
+
+exports[`preserves React class output during recipe extraction > LayerCardSecondary 1`] = `
+[
+  "class="flex h-10 min-w-0 shrink-0 items-center gap-2 px-4 font-medium text-muted-foreground"",
+]
+`;
+
+exports[`preserves React class output during recipe extraction > Page 1`] = `
+[
+  "class="grid grow auto-rows-min gap-y-7 py-8 [--page-bleed-gutter:var(--page-padding-x)] [--page-max-width:1400px] [--page-padding-x:--spacing(4)] md:[--page-padding-x:--spacing(8)] grid-cols-[minmax(var(--page-padding-x),1fr)_minmax(0,var(--page-max-width))_minmax(var(--page-padding-x),1fr)] *:col-start-2 *:data-full-bleed:col-span-full"",
+]
+`;
+
+exports[`preserves React class output during recipe extraction > PageActions 1`] = `
+[
+  "class="flex shrink-0 flex-wrap items-center gap-2"",
+]
+`;
+
+exports[`preserves React class output during recipe extraction > PageAside 1`] = `
+[
+  "class="hidden w-100 shrink-0 border-l @5xl/page-body:block"",
+  "class="sticky top-(--page-header-height,0px) flex flex-col gap-4 p-6"",
+]
+`;
+
+exports[`preserves React class output during recipe extraction > PageBody 1`] = `
+[
+  "class="@container/page-body flex min-w-0 grow"",
+]
+`;
+
+exports[`preserves React class output during recipe extraction > PageDescription 1`] = `
+[
+  "class="text-muted-foreground text-sm max-w-2xl text-pretty"",
+]
+`;
+
+exports[`preserves React class output during recipe extraction > PageFullBleed 1`] = `
+[
+  "class="px-(--page-bleed-gutter)"",
+]
+`;
+
+exports[`preserves React class output during recipe extraction > PageHeader 1`] = `
+[
+  "class="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between"",
+]
+`;
+
+exports[`preserves React class output during recipe extraction > PageHeading 1`] = `
+[
+  "class="flex min-w-0 flex-col gap-1"",
+]
+`;
+
+exports[`preserves React class output during recipe extraction > PageSection 1`] = `
+[
+  "class="grid auto-rows-min gap-4"",
+]
+`;
+
+exports[`preserves React class output during recipe extraction > PageSectionTitle 1`] = `
+[
+  "class="font-heading font-semibold text-foreground text-base col-span-full"",
+]
+`;
+
+exports[`preserves React class output during recipe extraction > PageTitle 1`] = `
+[
+  "class="font-heading font-semibold text-foreground text-xl flex items-center gap-2 tracking-tight [&amp;_svg:not([class*=&#x27;size-&#x27;])]:size-5"",
+]
+`;
+
+exports[`preserves React class output during recipe extraction > Separator 1`] = `
+[
+  "class="shrink-0 bg-border data-horizontal:h-px data-horizontal:w-full data-vertical:w-px data-vertical:self-stretch"",
+]
+`;
+
+exports[`preserves React class output during recipe extraction > Skeleton 1`] = `
+[
+  "class="animate-pulse rounded-md bg-muted"",
+]
+`;
+
+exports[`preserves React class output during recipe extraction > StatusDot 1`] = `
+[
+  "class="inline-block size-1.5 shrink-0 rounded-full bg-muted-foreground/50"",
+]
+`;
+
+exports[`preserves React class output during recipe extraction > Tag 1`] = `
+[
+  "class="relative inline-flex w-fit shrink-0 items-center gap-0.75 rounded-md bg-background font-medium whitespace-nowrap text-foreground ring-1 ring-border ring-inset select-none dark:bg-input/30 outline-ring outline-offset-2 has-[[data-slot=tag-toggle]:focus-visible]:outline-2 has-[[data-slot=tag-count],[data-slot=tag-remove]]:pr-1 data-disabled:cursor-not-allowed data-disabled:opacity-50 px-2 py-0.75 text-xs/4.5 not-data-selectable:has-data-[slot=avatar]:pl-1 not-data-selectable:has-data-[slot=status-dot]:pl-1.5 data-selectable:pl-1.25"",
+  "class="inline-flex items-center gap-1"",
+]
+`;
+
+exports[`preserves React class output during recipe extraction > TagCount 1`] = `
+[
+  "class="inline-flex items-center justify-center rounded-[3px] bg-muted font-medium text-foreground tabular-nums px-1 text-xs"",
+]
+`;
+
+exports[`preserves React class output during recipe extraction > TagGroup 1`] = `
+[
+  "class="flex flex-wrap gap-2"",
+]
+`;
+
+exports[`preserves React class output during recipe extraction > Text 1`] = `
+[
+  "class="text-foreground text-sm"",
+]
+`;

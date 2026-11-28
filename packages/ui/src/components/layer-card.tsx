@@ -1,3 +1,8 @@
+import {
+  layerCardClasses,
+  layerCardPrimaryClasses,
+  layerCardSecondaryClasses,
+} from "@omnisuite/ui/lib/recipes/layer-card";
 import type * as React from "react";
 import { cn } from "cn";
 
@@ -19,26 +24,14 @@ import { cn } from "cn";
  * own padding for a plain surface.
  */
 function LayerCard({ className, ...props }: React.ComponentProps<"div">) {
-  return (
-    <div
-      data-slot="layer-card"
-      className={cn(
-        "flex w-full min-w-0 flex-col overflow-hidden rounded-lg bg-elevated text-sm shadow-xs ring ring-border",
-        className,
-      )}
-      {...props}
-    />
-  );
+  return <div data-slot="layer-card" className={cn(...layerCardClasses, className)} {...props} />;
 }
 
 function LayerCardPrimary({ className, ...props }: React.ComponentProps<"div">) {
   return (
     <div
       data-slot="layer-card-primary"
-      className={cn(
-        "relative flex shrink-0 flex-col gap-2 overflow-hidden rounded-lg bg-background p-4 pr-3 ring ring-border transition-colors duration-100",
-        className,
-      )}
+      className={cn(...layerCardPrimaryClasses, className)}
       {...props}
     />
   );
@@ -48,10 +41,7 @@ function LayerCardSecondary({ className, ...props }: React.ComponentProps<"div">
   return (
     <div
       data-slot="layer-card-secondary"
-      className={cn(
-        "flex h-10 min-w-0 shrink-0 items-center gap-2 px-4 font-medium text-muted-foreground",
-        className,
-      )}
+      className={cn(...layerCardSecondaryClasses, className)}
       {...props}
     />
   );
