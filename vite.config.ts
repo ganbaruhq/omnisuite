@@ -17,12 +17,11 @@ export default defineConfig({
       },
       typecheck: { command: "pnpm -r typecheck", dependsOn: packageBuilds },
       test: { command: "vp test run", dependsOn: packageBuilds },
-      // The examples build and run in Chromium through Playwright: the calendar one against the
-      // built packages, so this also checks that a consumer builds through their exports, and
-      // the Effect UI one against the workspace sources.
+      // Both catalogs run in Chromium through Playwright. The calendar example also builds
+      // against package exports; Storybook covers React and the workspace Effect sources.
       "test:browser": {
         command:
-          "vp run -t @omnisuite/calendar-example#build && pnpm --filter @omnisuite/calendar-example test:browser && vp run -t @omnisuite/ui-effect-example#build && pnpm --filter @omnisuite/ui-effect-example test:browser",
+          "vp run -t @omnisuite/calendar-example#build && pnpm --filter @omnisuite/calendar-example test:browser && pnpm --filter @omnisuite/storybook test:browser",
       },
     },
   },

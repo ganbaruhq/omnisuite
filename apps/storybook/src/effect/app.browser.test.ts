@@ -1,14 +1,17 @@
-import { BrowserHost } from "@effect/ui/html";
-import { Effect, Fiber, Layer } from "effect";
+import { composeStories } from "@storybook/react-vite";
+import { createElement } from "react";
+import { createRoot, type Root } from "react-dom/client";
+
 import { afterEach, beforeEach, describe, expect, it, vi } from "vite-plus/test";
 import { page, userEvent } from "vite-plus/test/browser";
-import { App } from "./app";
-import "./styles.css";
+import * as stories from "./workspace.stories";
+const { Light } = composeStories(stories);
+import "../styles.css";
 
 // The example app, mounted the way `main.ts` mounts it, checked for what only a real browser
 // shows: the top layer, focus moving in and out of the dialog, where popups land, and the toast.
 
-let fiber: Fiber.Fiber<never> | undefined;
+let root: Root | undefined;
 let container: HTMLElement | undefined;
 // A component that fails is only logged, and blanks its part of the page, so every test also
 // checks that nothing failed.
@@ -25,17 +28,18 @@ beforeEach(async () => {
   }
   await page.viewport(1280, 900);
   container = document.body.appendChild(document.createElement("div"));
-  fiber = Effect.runFork(Layer.launch(BrowserHost.mount(App, {}, container)));
+  root = createRoot(container);
+  root.render(createElement(Light));
   await expect.poll(() => newCollection()).toBeTruthy();
 });
 
 afterEach(async () => {
-  vi.restoreAllMocks();
-  if (fiber !== undefined) await Effect.runPromise(Fiber.interrupt(fiber));
+  root?.unmount();
   container?.remove();
-  fiber = undefined;
+  root = undefined;
   container = undefined;
   await page.viewport(414, 896);
+  vi.restoreAllMocks();
   expect(logged.filter((line) => / failed /.test(line))).toEqual([]);
 });
 

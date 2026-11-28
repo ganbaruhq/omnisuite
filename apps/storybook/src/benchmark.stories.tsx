@@ -34,8 +34,7 @@ import { Textarea } from "@omnisuite/ui/components/textarea";
 import { Toaster, toast } from "@omnisuite/ui/components/toast";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@omnisuite/ui/components/tooltip";
 
-// The React twin of the "New collection" form in `apps/ui-effect-example`, the Effect UI
-// benchmark. Keep the two in step: they are compared side by side, in light and dark.
+// The React twin of the Effect UI "New collection" form in `effect/benchmark.stories.tsx`. Keep the two in step: they are compared side by side, in light and dark.
 
 const meta = {
   title: "Benchmark/New collection",
@@ -78,6 +77,7 @@ function Workspace({
   readonly defaultOpen?: boolean;
   readonly defaultSubmitted?: boolean;
 }) {
+  const searchId = React.useId();
   const [open, setOpen] = React.useState(defaultOpen);
   const [submitted, setSubmitted] = React.useState(defaultSubmitted);
   const [name, setName] = React.useState("");
@@ -114,9 +114,9 @@ function Workspace({
         </div>
         <div className="flex w-full items-end gap-3">
           <div className="flex flex-1 flex-col gap-2">
-            <Label htmlFor="collection-search">Search</Label>
+            <Label htmlFor={searchId}>Search</Label>
             <Input
-              id="collection-search"
+              id={searchId}
               type="search"
               placeholder="Filter collections"
               value={search}

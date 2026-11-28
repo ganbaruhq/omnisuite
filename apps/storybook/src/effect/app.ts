@@ -320,6 +320,20 @@ const Workspace = Html.component({
 // The root: the toast provider around the workspace
 // ---------------------------------------------------------------------------
 
+/** The benchmark form, isolated from the surrounding example pages. */
+export const Benchmark = Html.component({
+  name: "NewCollectionBenchmark",
+  model: Schema.Struct({}),
+  message: Schema.Never,
+}).make({
+  init: () => ({}),
+  update: ($) => $.model,
+  view: (h) =>
+    ToastProvider(h, {
+      view: (toastProvider) => h.div(Workspace(h, {}), toastProvider.toaster(h)),
+    }),
+});
+
 export const App = Html.component({
   name: "App",
   model: Schema.Struct({}),

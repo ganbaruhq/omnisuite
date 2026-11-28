@@ -1,9 +1,12 @@
-import { BrowserHost } from "@effect/ui/html";
+import { composeStories } from "@storybook/react-vite";
+import { createElement } from "react";
+import { createRoot, type Root } from "react-dom/client";
+import * as stories from "../front-desk.stories";
+const { Light } = composeStories(stories);
 import type { TimelineWindow } from "@omnisuite/calendar-core";
-import { Effect, Fiber, Layer } from "effect";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vite-plus/test";
 import { page, userEvent } from "vite-plus/test/browser";
-import { FrontDesk, type SampleEvent } from "./front-desk";
+import type { SampleEvent } from "./front-desk";
 import {
   flatTimeline,
   sampleTimeline,
@@ -13,12 +16,12 @@ import {
   createWindowQueries,
   type FetchWindow,
 } from "@omnisuite/calendar-sample-data/window-queries";
-import "../styles.css";
+import "../../styles.css";
 
 // The Effect example's resource timeline in a real browser, loading its events window by window
 // through application-owned queries, as the React example's loading tests do.
 
-let fiber: Fiber.Fiber<never> | undefined;
+let reactRoot: Root | undefined;
 let container: HTMLElement | undefined;
 // A component that fails is only logged and blanks its part of the page, so every test also
 // checks that nothing failed.
@@ -37,19 +40,20 @@ beforeEach(async () => {
 });
 
 afterEach(async () => {
-  vi.restoreAllMocks();
-  if (fiber !== undefined) await Effect.runPromise(Fiber.interrupt(fiber));
+  reactRoot?.unmount();
   container?.remove();
-  fiber = undefined;
+  reactRoot = undefined;
   container = undefined;
+  vi.restoreAllMocks();
   expect(logged.filter((line) => / failed /.test(line))).toEqual([]);
 });
 
 async function mount(input: SampleBoard, fetchWindow?: FetchWindow<SampleEvent>) {
   const queries = fetchWindow && createWindowQueries(fetchWindow);
   container = document.body.appendChild(document.createElement("div"));
-  fiber = Effect.runFork(
-    Layer.launch(BrowserHost.mount(FrontDesk, queries ? { input, queries } : { input }, container)),
+  reactRoot = createRoot(container);
+  reactRoot.render(
+    createElement(() => Light({ boardProps: queries ? { input, queries } : { input } })),
   );
   await expect.poll(() => document.querySelector("[data-timeline-root]")).toBeTruthy();
 }

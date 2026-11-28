@@ -1,11 +1,13 @@
-import { BrowserHost } from "@effect/ui/html";
-import { Effect, Fiber, Layer } from "effect";
+import { composeStories } from "@storybook/react-vite";
+import { createElement } from "react";
+import { createRoot, type Root } from "react-dom/client";
 import { afterEach, beforeEach, expect, it, vi } from "vite-plus/test";
 import { page, userEvent } from "vite-plus/test/browser";
-import { App } from "./app";
-import "./styles.css";
+import * as stories from "./workspace.stories";
+const { Light } = composeStories(stories);
+import "../styles.css";
 
-let fiber: Fiber.Fiber<never> | undefined;
+let root: Root | undefined;
 let container: HTMLElement;
 let failures: string[] = [];
 beforeEach(async () => {
@@ -20,16 +22,17 @@ beforeEach(async () => {
   }
   await page.viewport(1280, 900);
   container = document.body.appendChild(document.createElement("div"));
-  fiber = Effect.runFork(Layer.launch(BrowserHost.mount(App, {}, container)));
+  root = createRoot(container);
+  root.render(createElement(Light));
   await expect
     .poll(() => container.querySelector("#collection-detail h1")?.textContent)
     .toBe("Design system");
 });
 afterEach(async () => {
-  if (fiber !== undefined) await Effect.runPromise(Fiber.interrupt(fiber));
+  root?.unmount();
   container.remove();
-  vi.restoreAllMocks();
   await page.viewport(414, 896);
+  vi.restoreAllMocks();
   expect(failures).toEqual([]);
 });
 it("composes every markup component with semantic breadcrumbs and styled separators", async () => {

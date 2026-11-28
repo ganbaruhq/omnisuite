@@ -20,6 +20,7 @@ jobs:
           node-version: 24
           cache: pnpm
       - run: pnpm install --frozen-lockfile
+      # Both browser suites use the same Playwright Chromium installation.
       - run: pnpm --filter @omnisuite/calendar-example exec playwright install --with-deps chromium
       - run: pnpm run check
       - run: pnpm verify-ui-package

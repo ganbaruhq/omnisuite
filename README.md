@@ -19,12 +19,11 @@ published (`"private": true`):
 
 `apps/` holds private tooling:
 
-- `apps/storybook`: the `@omnisuite/ui` stories.
+- `apps/storybook`: the React and Effect UI catalog, comparison stories, and Effect browser tests.
+  Includes the benchmark form, collection pages, workspace shell, and calendar boards.
 - `apps/calendar-example`: a showcase and browser tests for the calendar packages.
-- `apps/ui-effect-example`: a showcase and browser tests for the Effect UI components and
-  `@omnisuite/calendar-effect`.
 
-`pnpm run check` runs the browser tests of both examples (`test:browser`).
+`pnpm run check` runs the browser tests of Storybook and the calendar example (`test:browser`).
 
 ## Develop
 
@@ -34,7 +33,6 @@ pnpm --filter @omnisuite/calendar-example exec playwright install chromium
 pnpm run check                               # lint, typecheck, unit and browser tests
 pnpm storybook                               # http://localhost:6006
 pnpm --filter @omnisuite/calendar-example dev
-pnpm --filter @omnisuite/ui-effect-example dev
 ```
 
 Packages declare explicit version ranges rather than `catalog:`, because the platform repo

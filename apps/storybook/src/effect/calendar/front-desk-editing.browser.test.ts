@@ -1,20 +1,23 @@
-import { BrowserHost } from "@effect/ui/html";
-import { Effect, Fiber, Layer } from "effect";
+import { composeStories } from "@storybook/react-vite";
+import { createElement } from "react";
+import { createRoot, type Root } from "react-dom/client";
+import * as stories from "../front-desk.stories";
+const { Light } = composeStories(stories);
 import { afterEach, beforeEach, describe, expect, it, vi } from "vite-plus/test";
 import { page, userEvent } from "vite-plus/test/browser";
-import { FrontDesk, type SampleProposal } from "./front-desk";
+import type { SampleProposal } from "./front-desk";
 import { flatTimeline, sampleEditing } from "@omnisuite/calendar-sample-data/sample-timeline";
 import {
   createSampleFetch,
   createWindowQueries,
 } from "@omnisuite/calendar-sample-data/window-queries";
-import "../styles.css";
+import "../../styles.css";
 
 // The Effect example's board edited by a pointer in a real browser, as the React example's
 // editing tests do: a move is held before it begins, a resize handle follows at once, and the
 // application decides what a proposal changes.
 
-let fiber: Fiber.Fiber<never> | undefined;
+let reactRoot: Root | undefined;
 let container: HTMLElement | undefined;
 let logged: Array<string> = [];
 let proposals: SampleProposal[];
@@ -34,13 +37,13 @@ beforeEach(async () => {
 });
 
 afterEach(async () => {
-  vi.restoreAllMocks();
-  if (fiber !== undefined) await Effect.runPromise(Fiber.interrupt(fiber));
+  reactRoot?.unmount();
   container?.remove();
-  fiber = undefined;
+  reactRoot = undefined;
   container = undefined;
   // The viewport belongs to the other test files too, so it goes back to the browser's default.
   await page.viewport(414, 896);
+  vi.restoreAllMocks();
   expect(logged.filter((line) => / failed /.test(line))).toEqual([]);
 });
 
@@ -48,19 +51,13 @@ afterEach(async () => {
 async function mount({ acceptProposals = true } = {}) {
   const queries = createWindowQueries(createSampleFetch(flatTimeline.events, { delayMs: 0 }));
   container = document.body.appendChild(document.createElement("div"));
-  fiber = Effect.runFork(
-    Layer.launch(
-      BrowserHost.mount(
-        FrontDesk,
-        {
-          input: flatTimeline,
-          queries,
-          editing: sampleEditing,
-          acceptProposals,
-        },
-        container,
-        { onEmit: (event) => proposals.push(event.proposal) },
-      ),
+  reactRoot = createRoot(container);
+  reactRoot.render(
+    createElement(() =>
+      Light({
+        boardProps: { input: flatTimeline, queries, editing: sampleEditing, acceptProposals },
+        onProposal: (proposal) => proposals.push(proposal),
+      }),
     ),
   );
   await expect.poll(() => occurrence("boiler")).toBeTruthy();

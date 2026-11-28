@@ -1,33 +1,33 @@
-import { BrowserHost } from "@effect/ui/html";
-import { occurrenceIdOf, type EditingInput } from "@omnisuite/calendar-core";
-import { Effect, Fiber, Layer } from "effect";
+import { composeStories } from "@storybook/react-vite";
+import { createElement } from "react";
+import { createRoot, type Root } from "react-dom/client";
+import * as stories from "../housekeeping.stories";
+const { Light } = composeStories(stories);
+import { occurrenceIdOf } from "@omnisuite/calendar-core";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vite-plus/test";
 import { page, userEvent } from "vite-plus/test/browser";
-import { FrontDesk, type SampleEvent } from "./front-desk";
+import type { BoardProps } from "./props";
 import {
   createResourceQueries,
   createSampleResourceFetch,
-  type ResourceQueries,
 } from "@omnisuite/calendar-sample-data/resource-queries";
 import {
   flatTimeline,
   lazyServerEvents,
   lazyServerResources,
   sampleEditing,
-  type SampleBoard,
 } from "@omnisuite/calendar-sample-data/sample-timeline";
 import {
   createSampleFetch,
   createWindowQueries,
-  type WindowQueries,
 } from "@omnisuite/calendar-sample-data/window-queries";
-import "../styles.css";
+import "../../styles.css";
 
 // The Effect example's editable calendar in a real browser: events moved and resized from the
 // keyboard, with the application applying what is proposed, and rooms loaded a page or a branch
 // at a time, as the React example's editing and resource tests do.
 
-let fiber: Fiber.Fiber<never> | undefined;
+let reactRoot: Root | undefined;
 let container: HTMLElement | undefined;
 // A component that fails is only logged and blanks its part of the page, so every test also
 // checks that nothing failed.
@@ -46,22 +46,18 @@ beforeEach(async () => {
 });
 
 afterEach(async () => {
-  vi.restoreAllMocks();
-  if (fiber !== undefined) await Effect.runPromise(Fiber.interrupt(fiber));
+  reactRoot?.unmount();
   container?.remove();
-  fiber = undefined;
+  reactRoot = undefined;
   container = undefined;
+  vi.restoreAllMocks();
   expect(logged.filter((line) => / failed /.test(line))).toEqual([]);
 });
 
-function launch(props: {
-  readonly input: SampleBoard;
-  readonly queries?: WindowQueries<SampleEvent>;
-  readonly resourceQueries?: ResourceQueries;
-  readonly editing?: EditingInput<any>;
-}) {
+function launch(props: BoardProps) {
   container = document.body.appendChild(document.createElement("div"));
-  fiber = Effect.runFork(Layer.launch(BrowserHost.mount(FrontDesk, props, container)));
+  reactRoot = createRoot(container);
+  reactRoot.render(createElement(() => Light({ boardProps: props })));
 }
 
 /** The flat board with its events loaded at once, editable, applying what it proposes. */

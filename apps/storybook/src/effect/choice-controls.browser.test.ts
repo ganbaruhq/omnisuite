@@ -1,11 +1,13 @@
-import { BrowserHost } from "@effect/ui/html";
-import { Effect, Fiber, Layer } from "effect";
+import { composeStories } from "@storybook/react-vite";
+import { createElement } from "react";
+import { createRoot, type Root } from "react-dom/client";
 import { afterEach, beforeEach, expect, it, vi } from "vite-plus/test";
 import { page, userEvent } from "vite-plus/test/browser";
-import { ChoiceControls } from "./pages/choice-controls";
-import "./styles.css";
+import * as stories from "./choice-controls.stories";
+const { Light } = composeStories(stories);
+import "../styles.css";
 
-let fiber: Fiber.Fiber<never> | undefined;
+let root: Root | undefined;
 let container: HTMLElement;
 let failures: Array<string>;
 beforeEach(async () => {
@@ -20,11 +22,12 @@ beforeEach(async () => {
   }
   await page.viewport(1280, 900);
   container = document.body.appendChild(document.createElement("div"));
-  fiber = Effect.runFork(Layer.launch(BrowserHost.mount(ChoiceControls, {}, container)));
+  root = createRoot(container);
+  root.render(createElement(Light));
   await expect.element(page.getByRole("button", { name: "Save preferences" })).toBeVisible();
 });
 afterEach(async () => {
-  if (fiber) await Effect.runPromise(Fiber.interrupt(fiber));
+  root?.unmount();
   container.remove();
   vi.restoreAllMocks();
   expect(failures).toEqual([]);
