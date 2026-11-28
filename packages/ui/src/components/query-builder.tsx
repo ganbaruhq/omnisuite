@@ -173,7 +173,7 @@ export function QueryBuilder({
 
         {currentMode === "command" ? (
           <Popover open={commandOpen} onOpenChange={setCommandOpen}>
-            <PopoverTrigger render={<Button variant="outline" size="sm" />}>
+            <PopoverTrigger render={<Button variant="outline" />}>
               <IconPlus data-icon="inline-start" aria-hidden />
               Add filter
             </PopoverTrigger>

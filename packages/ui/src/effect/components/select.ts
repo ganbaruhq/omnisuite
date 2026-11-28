@@ -23,8 +23,9 @@ import {
   stylePart,
   styledSlot,
 } from "@omnisuite/ui/effect/lib/styled";
+import type { ControlSize } from "@omnisuite/ui/lib/recipes/control";
 
-export type SelectSize = "sm" | "default";
+export type SelectSize = ControlSize;
 
 // Base UI focuses the highlighted item, and React's recipe styles `focus:`. The kit marks it
 // `data-highlighted`, so the item gets the same look on that.

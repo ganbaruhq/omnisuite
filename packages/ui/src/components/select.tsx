@@ -17,6 +17,7 @@ import {
   selectScrollUpClasses,
   selectScrollDownClasses,
 } from "@omnisuite/ui/lib/recipes/select";
+import type { ControlSize } from "@omnisuite/ui/lib/recipes/control";
 
 const Select = SelectPrimitive.Root;
 
@@ -46,7 +47,7 @@ function SelectTrigger({
   children,
   ...props
 }: SelectPrimitive.Trigger.Props & {
-  size?: "sm" | "default";
+  size?: ControlSize;
 }) {
   return (
     <SelectPrimitive.Trigger

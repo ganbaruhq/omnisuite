@@ -54,7 +54,9 @@ import {
 import { Slider } from "@omnisuite/ui/components/slider";
 import { Switch } from "@omnisuite/ui/components/switch";
 import { Textarea } from "@omnisuite/ui/components/textarea";
+import { Toggle } from "@omnisuite/ui/components/toggle";
 import { ToggleGroup, ToggleGroupItem } from "@omnisuite/ui/components/toggle-group";
+import type { ControlSize } from "@omnisuite/ui/lib/recipes/control";
 
 const meta = {
   title: "Forms/Form",
@@ -354,3 +356,62 @@ function KitchenSinkForm() {
 }
 
 export const AllInputs: Story = { render: () => <KitchenSinkForm /> };
+
+const CONTROL_SIZES: ControlSize[] = ["xs", "sm", "default", "md", "lg"];
+
+/** Same `size`, same height: every control in a row should share its top and bottom edge. */
+function ControlSizeRows() {
+  return (
+    <div className="flex flex-col gap-4">
+      {CONTROL_SIZES.map((size) => (
+        <div key={size} data-testid={`control-row-${size}`} className="flex items-center gap-2">
+          <span className="w-14 font-mono text-xs text-muted-foreground">{size}</span>
+          <Button size={size}>Save</Button>
+          <Input size={size} aria-label={`Input ${size}`} placeholder="Input" className="w-28" />
+          <InputGroup size={size} className="w-36">
+            <InputGroupAddon>
+              <IconAt aria-hidden />
+            </InputGroupAddon>
+            <InputGroupInput aria-label={`Input group ${size}`} placeholder="Group" />
+          </InputGroup>
+          <Select items={ROLES} defaultValue="owner">
+            <SelectTrigger size={size} aria-label={`Select ${size}`}>
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectGroup>
+                {ROLES.map((role) => (
+                  <SelectItem key={role.label} value={role.value}>
+                    {role.label}
+                  </SelectItem>
+                ))}
+              </SelectGroup>
+            </SelectContent>
+          </Select>
+          <NativeSelect size={size} aria-label={`Native select ${size}`} defaultValue="en">
+            <NativeSelectOption value="en">English</NativeSelectOption>
+            <NativeSelectOption value="vi">Tiếng Việt</NativeSelectOption>
+          </NativeSelect>
+          <Combobox items={TIMEZONES} defaultValue={TIMEZONES[0]}>
+            <ComboboxInput size={size} aria-label={`Combobox ${size}`} className="w-44" />
+            <ComboboxContent>
+              <ComboboxEmpty>No timezone found.</ComboboxEmpty>
+              <ComboboxList>
+                {(zone: string) => (
+                  <ComboboxItem key={zone} value={zone}>
+                    {zone}
+                  </ComboboxItem>
+                )}
+              </ComboboxList>
+            </ComboboxContent>
+          </Combobox>
+          <Toggle size={size} variant="outline" aria-label={`Toggle ${size}`}>
+            <IconTable aria-hidden />
+          </Toggle>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+export const ControlSizes: Story = { render: () => <ControlSizeRows /> };
