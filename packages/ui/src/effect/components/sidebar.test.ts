@@ -15,8 +15,8 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
-  sidebarMobileQuery,
 } from "@omnisuite/ui/effect/components/sidebar";
+import { sidebarMobileQuery } from "@omnisuite/ui/lib/recipes/sidebar";
 
 const Message = UiSchema.TaggedEnum({ Typed: { query: Schema.String } });
 

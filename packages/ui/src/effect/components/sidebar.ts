@@ -3,9 +3,12 @@ import { Html, HtmlSubscription } from "@effect/ui/html";
 import type { VariantProps } from "class-variance-authority";
 import { Schema } from "effect";
 import {
+  sidebarAnimationDuration,
   sidebarContainerBorderedClasses,
   sidebarContainerClasses,
   sidebarContentClasses,
+  sidebarDefaultWidthPx,
+  sidebarEasing,
   sidebarFooterClasses,
   sidebarGapClasses,
   sidebarGapIconClasses,
@@ -20,7 +23,10 @@ import {
   sidebarMenuItemClasses,
   sidebarMobileClasses,
   sidebarMobileInnerClasses,
+  sidebarMobileQuery,
   sidebarRootClasses,
+  sidebarWidthIcon,
+  sidebarWidthMobile,
   sidebarWrapperClasses,
 } from "@omnisuite/ui/lib/recipes/sidebar";
 import { textVariants } from "@omnisuite/ui/lib/recipes/text";
@@ -30,14 +36,6 @@ import { Sheet } from "@omnisuite/ui/effect/components/sheet";
 import { Icon } from "@omnisuite/ui/effect/lib/icons";
 import { styledSlot } from "@omnisuite/ui/effect/lib/styled";
 
-// React's `SidebarProvider` constants.
-const width = "224px";
-const widthMobile = "18rem";
-const widthIcon = "3rem";
-const animationDuration = "250ms";
-const easing = "cubic-bezier(0.77, 0, 0.175, 1)";
-/** React's `useIsMobile` breakpoint: below 768px the sidebar opens as a sheet. */
-export const sidebarMobileQuery = "(max-width: 767px)";
 /** The trigger's id, so focus can come back to it once the mobile sheet closes. */
 export const sidebarTriggerId = "sidebar-trigger";
 
@@ -171,7 +169,7 @@ export const Sidebar = Html.component({
                 sheet
                   .popup(h.div)
                   .class(sidebarMobileClasses)
-                  .style({ "--sidebar-width": widthMobile })
+                  .style({ "--sidebar-width": sidebarWidthMobile })
                   .attrs({
                     "data-slot": "sidebar",
                     "data-sidebar": "sidebar",
@@ -190,10 +188,10 @@ export const Sidebar = Html.component({
               );
             return styledSlot(h.div, "sidebar-wrapper", sidebarWrapperClasses)
               .style({
-                "--sidebar-width": width,
-                "--sidebar-width-icon": widthIcon,
-                "--sidebar-animation-duration": animationDuration,
-                "--sidebar-easing": easing,
+                "--sidebar-width": `${sidebarDefaultWidthPx}px`,
+                "--sidebar-width-icon": sidebarWidthIcon,
+                "--sidebar-animation-duration": sidebarAnimationDuration,
+                "--sidebar-easing": sidebarEasing,
               })
               .children(
                 model.mobile ? mobile() : desktop(),

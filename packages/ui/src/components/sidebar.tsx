@@ -18,10 +18,13 @@ import {
 import { Skeleton } from "@omnisuite/ui/components/skeleton";
 import { textVariants } from "@omnisuite/ui/components/text";
 import {
+  sidebarAnimationDuration,
   sidebarContainerBorderedClasses,
   sidebarContainerClasses,
   sidebarContainerPaddedClasses,
   sidebarContentClasses,
+  sidebarDefaultWidthPx,
+  sidebarEasing,
   sidebarFooterClasses,
   sidebarGapClasses,
   sidebarGapIconClasses,
@@ -39,6 +42,8 @@ import {
   sidebarMobileInnerClasses,
   sidebarRootClasses,
   sidebarStaticClasses,
+  sidebarWidthIcon,
+  sidebarWidthMobile,
   sidebarWrapperClasses,
 } from "@omnisuite/ui/lib/recipes/sidebar";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@omnisuite/ui/components/tooltip";
@@ -47,17 +52,11 @@ import { IconLayoutSidebar } from "@tabler/icons-react";
 const SIDEBAR_COOKIE_NAME = "sidebar_state";
 const SIDEBAR_COOKIE_MAX_AGE = 60 * 60 * 24 * 7;
 // Drag-to-resize bounds (px), matching Kumo's resizable sidebar.
-const SIDEBAR_DEFAULT_WIDTH_PX = 224;
 const SIDEBAR_MIN_WIDTH_PX = 200;
 const SIDEBAR_MAX_WIDTH_PX = 320;
 const SIDEBAR_RESIZE_KEYBOARD_STEP_PX = 10;
 /** Pointer travel before a press on the rail counts as a drag instead of a click. */
 const SIDEBAR_DRAG_THRESHOLD_PX = 3;
-const SIDEBAR_WIDTH_MOBILE = "18rem";
-const SIDEBAR_WIDTH_ICON = "3rem";
-// Cloudflare dashboard timing: ease-in-out-quart, so width changes start and land softly.
-const SIDEBAR_ANIMATION_DURATION = "250ms";
-const SIDEBAR_EASING = "cubic-bezier(0.77, 0, 0.175, 1)";
 const SIDEBAR_KEYBOARD_SHORTCUT = "b";
 
 type SidebarContextProps = {
@@ -142,7 +141,7 @@ function SidebarProvider({
   // This makes it easier to style the sidebar with Tailwind classes.
   const state = open ? "expanded" : "collapsed";
 
-  const [width, setWidthState] = React.useState(SIDEBAR_DEFAULT_WIDTH_PX);
+  const [width, setWidthState] = React.useState(sidebarDefaultWidthPx);
   const [isResizing, setIsResizing] = React.useState(false);
   const setWidth = React.useCallback((next: number) => {
     setWidthState(Math.round(Math.min(Math.max(next, SIDEBAR_MIN_WIDTH_PX), SIDEBAR_MAX_WIDTH_PX)));
@@ -184,10 +183,10 @@ function SidebarProvider({
         style={
           {
             "--sidebar-width": `${width}px`,
-            "--sidebar-width-icon": SIDEBAR_WIDTH_ICON,
+            "--sidebar-width-icon": sidebarWidthIcon,
             // Follow the pointer 1:1 while dragging; animate everything else.
-            "--sidebar-animation-duration": isResizing ? "0ms" : SIDEBAR_ANIMATION_DURATION,
-            "--sidebar-easing": SIDEBAR_EASING,
+            "--sidebar-animation-duration": isResizing ? "0ms" : sidebarAnimationDuration,
+            "--sidebar-easing": sidebarEasing,
             ...style,
           } as React.CSSProperties
         }
@@ -234,7 +233,7 @@ function Sidebar({
           className={sidebarMobileClasses}
           style={
             {
-              "--sidebar-width": SIDEBAR_WIDTH_MOBILE,
+              "--sidebar-width": sidebarWidthMobile,
             } as React.CSSProperties
           }
           side={side}

@@ -1,5 +1,20 @@
 import { cva } from "class-variance-authority";
 
+// Sizing and timing both renderers set as CSS variables on the sidebar wrapper.
+/** The expanded sidebar's starting width, in px. */
+export const sidebarDefaultWidthPx = 224;
+/** The width of the sheet the sidebar opens in below the mobile breakpoint. */
+export const sidebarWidthMobile = "18rem";
+/** The width of a sidebar collapsed to its icons. */
+export const sidebarWidthIcon = "3rem";
+// Cloudflare dashboard timing: ease-in-out-quart, so width changes start and land softly.
+export const sidebarAnimationDuration = "250ms";
+export const sidebarEasing = "cubic-bezier(0.77, 0, 0.175, 1)";
+/** Below this viewport width (px) the sidebar opens as a sheet. */
+export const sidebarMobileBreakpointPx = 768;
+/** The media query that matches viewports below `sidebarMobileBreakpointPx`. */
+export const sidebarMobileQuery = `(max-width: ${sidebarMobileBreakpointPx - 1}px)`;
+
 /** The provider's wrapper around the sidebar and its inset. */
 export const sidebarWrapperClasses =
   "group/sidebar-wrapper flex min-h-svh w-full has-data-[variant=inset]:bg-sidebar";
