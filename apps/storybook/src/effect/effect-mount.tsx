@@ -5,7 +5,7 @@ export type EffectMountProps = {
   readonly mount: (element: HTMLElement) => Layer.Layer<never>;
 };
 
-/** Owns the Effect runtime for exactly as long as React keeps this story mounted. */
+// Owns the Effect runtime for exactly as long as React keeps this story mounted.
 export function EffectMount({ mount }: EffectMountProps) {
   const container = useRef<HTMLDivElement>(null);
   useEffect(() => {

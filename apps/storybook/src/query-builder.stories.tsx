@@ -9,7 +9,7 @@ import {
 } from "@omnisuite/ui/components/query-builder";
 
 const meta = {
-  title: "React/Form/Query Builder",
+  title: "React/Components/Query Builder",
   parameters: { layout: "padded" },
 } satisfies Meta;
 

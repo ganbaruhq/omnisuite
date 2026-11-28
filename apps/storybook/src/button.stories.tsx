@@ -1,7 +1,6 @@
+import { IconCheck } from "@tabler/icons-react";
 import type { Meta, StoryObj } from "@storybook/react-vite";
 import { Button } from "@omnisuite/ui/components/button";
-import { ButtonGroup } from "@omnisuite/ui/components/button-group";
-import { FancyButton } from "@omnisuite/ui/components/fancy-button";
 
 const meta = {
   title: "React/Components/Button",
@@ -26,16 +25,16 @@ export const Variants: Story = {
 };
 export const Disabled: Story = { args: { disabled: true } };
 export const Pending: Story = { args: { status: "pending" } };
-export const Fancy: Story = { render: () => <FancyButton>Save changes</FancyButton> };
-export const Group: Story = {
+export const Sizes: Story = {
   render: () => (
-    <ButtonGroup aria-label="Page actions">
-      <ButtonGroup>
-        <Button variant="outline">Documentation</Button>
-      </ButtonGroup>
-      <ButtonGroup>
-        <Button>Create collection</Button>
-      </ButtonGroup>
-    </ButtonGroup>
+    <div className="flex flex-wrap items-center gap-3">
+      {(["xs", "sm", "default", "md", "lg", "icon-xs", "icon-sm", "icon", "icon-lg"] as const).map(
+        (size) => (
+          <Button key={size} size={size} aria-label={size}>
+            {size.startsWith("icon") ? <IconCheck /> : size}
+          </Button>
+        ),
+      )}
+    </div>
   ),
 };

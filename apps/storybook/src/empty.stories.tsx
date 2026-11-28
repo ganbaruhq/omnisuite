@@ -7,24 +7,45 @@ import {
   EmptyDescription,
   EmptyContent,
 } from "@omnisuite/ui/components/empty";
-import { EmptyIllustration } from "@omnisuite/ui/components/empty-illustration";
 import { Button } from "@omnisuite/ui/components/button";
-const meta = { title: "React/Components/Empty", component: Empty } satisfies Meta<typeof Empty>;
+
+const meta = { title: "React/Components/Empty" } satisfies Meta;
 export default meta;
 type Story = StoryObj<typeof meta>;
-export const Illustrated: Story = {
+export const Default: Story = {
   render: () => (
     <Empty>
       <EmptyHeader>
-        <EmptyMedia>
-          <EmptyIllustration />
-        </EmptyMedia>
         <EmptyTitle>No collections yet</EmptyTitle>
         <EmptyDescription>Create a collection to organize your data.</EmptyDescription>
       </EmptyHeader>
       <EmptyContent>
         <Button>New collection</Button>
       </EmptyContent>
+    </Empty>
+  ),
+};
+export const Icon: Story = {
+  render: () => (
+    <Empty>
+      <EmptyHeader>
+        <EmptyMedia variant="icon">+</EmptyMedia>
+        <EmptyTitle>No collections yet</EmptyTitle>
+        <EmptyDescription>Create a collection to organize your data.</EmptyDescription>
+      </EmptyHeader>
+      <EmptyContent>
+        <Button>New collection</Button>
+      </EmptyContent>
+    </Empty>
+  ),
+};
+export const WithoutAction: Story = {
+  render: () => (
+    <Empty>
+      <EmptyHeader>
+        <EmptyTitle>No collections yet</EmptyTitle>
+        <EmptyDescription>Create a collection to organize your data.</EmptyDescription>
+      </EmptyHeader>
     </Empty>
   ),
 };
