@@ -9,6 +9,7 @@ import {
   InputGroupButton,
   InputGroupInput,
 } from "@omnisuite/ui/components/input-group";
+import type { ControlSize } from "@omnisuite/ui/lib/recipes/control";
 import { IconChevronDown, IconX, IconCheck } from "@tabler/icons-react";
 
 const Combobox = ComboboxPrimitive.Root;
@@ -49,13 +50,15 @@ function ComboboxInput({
   disabled = false,
   showTrigger = true,
   showClear = false,
+  size = "default",
   ...props
-}: ComboboxPrimitive.Input.Props & {
+}: Omit<ComboboxPrimitive.Input.Props, "size"> & {
   showTrigger?: boolean;
   showClear?: boolean;
+  size?: ControlSize;
 }) {
   return (
-    <InputGroup className={cn("w-auto", className)}>
+    <InputGroup size={size} className={cn("w-auto", className)}>
       <ComboboxPrimitive.Input render={<InputGroupInput disabled={disabled} />} {...props} />
       <InputGroupAddon align="inline-end">
         {showTrigger && (
@@ -190,12 +193,12 @@ function ComboboxSeparator({ className, ...props }: ComboboxPrimitive.Separator.
   );
 }
 
-// Sizing: the control's height comes from padding, not from `min-h-7`.
-// One row = 4px padding + 18px chip + 4px padding + 2px border = 28px, matching
-// the other inputs. Each wrapped row adds 18px + 4px gap, so the inset around
-// the chips and the gap between rows stay 4px at any row count.
-// Keep `p-1`, `gap-1`, and the `h-4.5` on ComboboxChip / ComboboxChipsInput in
-// sync: taller chips make the control taller than 28px, and padding added via
+// Sizing: the control's height comes from padding, not from `min-h-8`.
+// One row = 6px padding + 18px chip + 6px padding + 2px border = 32px, matching
+// the other default-size controls. Each wrapped row adds 18px + 4px gap, so the
+// inset around the chips stays 6px at any row count.
+// Keep `p-1.5`, `gap-1`, and the `h-4.5` on ComboboxChip / ComboboxChipsInput in
+// sync: taller chips make the control taller than 32px, and padding added via
 // `min-h` only shows on a single row.
 function ComboboxChips({
   className,
@@ -205,7 +208,7 @@ function ComboboxChips({
     <ComboboxPrimitive.Chips
       data-slot="combobox-chips"
       className={cn(
-        "flex min-h-7 cursor-text flex-wrap content-start items-center gap-1 rounded-md border border-input bg-input/20 bg-clip-padding p-1 text-xs/relaxed transition-colors focus-within:border-ring focus-within:ring-2 focus-within:ring-ring/30 has-aria-invalid:border-destructive has-aria-invalid:ring-2 has-aria-invalid:ring-destructive/20 dark:bg-input/30 dark:has-aria-invalid:border-destructive/50 dark:has-aria-invalid:ring-destructive/40",
+        "flex min-h-8 cursor-text flex-wrap content-start items-center gap-1 rounded-md border border-input bg-input/20 bg-clip-padding p-1.5 text-xs/relaxed transition-colors focus-within:border-ring focus-within:ring-2 focus-within:ring-ring/30 has-aria-invalid:border-destructive has-aria-invalid:ring-2 has-aria-invalid:ring-destructive/20 dark:bg-input/30 dark:has-aria-invalid:border-destructive/50 dark:has-aria-invalid:ring-destructive/40",
         className,
       )}
       {...props}

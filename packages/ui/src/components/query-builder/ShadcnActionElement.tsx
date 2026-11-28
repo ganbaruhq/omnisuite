@@ -32,7 +32,7 @@ export function ShadcnActionElement({
       data-testid={testID}
       type="button"
       variant={removeAction ? "ghost" : "outline"}
-      size={removeAction ? "icon-sm" : "sm"}
+      size={removeAction ? "icon" : "default"}
       className={className}
       title={disabledTranslation && disabled ? disabledTranslation.title : title}
       aria-label={removeAction && typeof label === "string" ? title : undefined}

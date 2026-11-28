@@ -37,7 +37,7 @@ const badgeVariants = cva(
         color: "rounded-sm",
         // Only the dot/icon takes the colour.
         modern:
-          "rounded-sm bg-background text-mist-700 shadow-xs ring-mist-300 dark:text-mist-300 dark:ring-mist-700",
+          "rounded-sm bg-background text-badge-modern-foreground shadow-xs ring-badge-modern-ring",
       },
       color: {
         gray: "",

@@ -18,7 +18,9 @@
     "./globals.css": "./src/styles/globals.css",
     "./lib/*": "./src/lib/*.ts",
     "./components/*": "./src/components/*.tsx",
-    "./hooks/*": "./src/hooks/*.ts"
+    "./hooks/*": "./src/hooks/*.ts",
+    "./effect/components/*": "./src/effect/components/*.ts",
+    "./effect/lib/*": "./src/effect/lib/*.ts"
   },
   "publishConfig": {
     "exports": {
@@ -40,6 +42,7 @@
     "registry": "https://registry.npmjs.org/"
   },
   "scripts": {
+    "lint": "vp lint -c .oxlintrc.json src",
     "build": "node scripts/clean.mjs && tsc -p tsconfig.build.json && node scripts/copy-styles.mjs",
     "prepack": "pnpm build",
     "typecheck": "tsc --noEmit"
@@ -58,13 +61,37 @@
     "tw-animate-css": "1.4.0"
   },
   "devDependencies": {
+    "@effect/ui": "https://pkg.pr.new/Effect-TS/ui/@effect/ui@dec1ca9f98b9ab7687cd962bf70e488607239fa3",
+    "@effect/ui-kit": "https://pkg.pr.new/Effect-TS/ui/@effect/ui-kit@dec1ca9f98b9ab7687cd962bf70e488607239fa3",
+    "@shadcn/lint": "0.2.5",
     "@types/react": "19.3.0",
+    "effect": "^4.1.6",
     "react": "19.3.1",
     "react-dom": "19.3.1",
     "typescript": "7.0.2"
   },
   "peerDependencies": {
+    "@effect/ui": "*",
+    "@effect/ui-kit": "*",
+    "effect": "^4.1.6",
     "react": "^19.0.0",
     "react-dom": "^19.0.0"
+  },
+  "peerDependenciesMeta": {
+    "@effect/ui": {
+      "optional": true
+    },
+    "@effect/ui-kit": {
+      "optional": true
+    },
+    "effect": {
+      "optional": true
+    },
+    "react": {
+      "optional": true
+    },
+    "react-dom": {
+      "optional": true
+    }
   }
 }

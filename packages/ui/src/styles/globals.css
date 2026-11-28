@@ -9,6 +9,7 @@
 @source "../**/*.{js,ts,tsx}";
 
 @theme {
+  --color-avatar-placeholder: #fff;
   --color-avatar-gray: #ebebeb;
   --color-avatar-black: #171717;
   --color-avatar-yellow: #ffecc0;
@@ -30,6 +31,8 @@
 }
 
 @theme inline {
+  --color-badge-modern-foreground: var(--badge-modern-foreground);
+  --color-badge-modern-ring: var(--badge-modern-ring);
   /* AlignUI focus rings: a 2px background gap, then a 4px tint. Inline so the
      colours follow the element's theme (light/dark), not :root. */
   --shadow-button-primary-focus:
@@ -92,6 +95,8 @@
 }
 
 :root {
+  --badge-modern-foreground: var(--color-mist-700);
+  --badge-modern-ring: var(--color-mist-300);
   --background: oklch(1 0 0);
   --canvas: var(--color-mist-50);
   --elevated: oklch(0.98 0.002 197.1);
@@ -138,6 +143,8 @@
 }
 
 .dark {
+  --badge-modern-foreground: var(--color-mist-300);
+  --badge-modern-ring: var(--color-mist-700);
   --background: var(--color-mist-950);
   --canvas: var(--color-mist-950);
   --elevated: oklch(0.18 0.006 226);

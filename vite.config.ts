@@ -11,7 +11,10 @@ export default defineConfig({
   },
   run: {
     tasks: {
-      lint: { command: "vp lint && vp fmt --check", cache: true },
+      lint: {
+        command: "vp lint && pnpm --filter @omnisuite/ui lint && vp fmt --check",
+        cache: true,
+      },
       typecheck: { command: "pnpm -r typecheck", dependsOn: packageBuilds },
       test: { command: "vp test run", dependsOn: packageBuilds },
       // The calendar example builds and runs in Chromium through Playwright against the built

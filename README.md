@@ -26,6 +26,12 @@ pnpm --filter @omnisuite/calendar-example dev
 Packages declare explicit version ranges rather than `catalog:`, because the platform repo
 includes this repo as a git submodule inside its own pnpm workspace.
 
+Run `pnpm --filter @omnisuite/ui lint` after changing UI source. It uses Vite+ / Oxlint
+with `@shadcn/lint`; `packages/ui/.oxlintrc.json` enables `shadcn/no-raw-colors`
+to require theme colors. Component and theme discovery uses `packages/ui/components.json`.
+Both workspace check commands include this lint step. Configure additional policies in
+the same file; available rules: https://github.com/shadcn-ui/lint#rules.
+
 ## Release
 
 1. In each PR that changes a published package, add a changeset: `pnpm changeset`.
