@@ -3,6 +3,7 @@ import { Html } from "@effect/ui/html";
 import {
   timelineViewResult,
   type EditingInput,
+  type EventProposal,
   type TimelineInputIssue,
   type TimelinePreset,
   type TimelineRow,
@@ -31,10 +32,10 @@ import type { WindowQueries } from "./window-queries";
 // The React example's "Front desk" board, drawn with @omnisuite/calendar-effect: the same
 // toolbar, rows, axis and events, with the same classes. With `queries` it loads events window by
 // window as the viewer moves through time; with `resourceQueries` it loads the rooms a page or a
-// branch at a time; with `editing` the events move and resize from the keyboard, and the
-// application applies what is proposed to its queries.
+// branch at a time; and with `editing` its events move and resize, by pointer or keyboard.
 
 export type SampleEvent = SampleBoard["events"][number];
+export type SampleProposal = EventProposal<{ kind: StayKind }>;
 
 const slotWidth: Record<TimelinePreset, string> = {
   hour: "min-w-[calc(var(--timeline-span)*4.5rem)] flex-1",
@@ -44,11 +45,9 @@ const slotWidth: Record<TimelinePreset, string> = {
 };
 const rowWidth = "flex w-max min-w-full";
 const resourceColumn = "sticky start-0 z-10 w-52 shrink-0 border-e bg-card";
-const editableEvent =
-  "data-editable:focus-visible:outline-2 data-editable:focus-visible:outline-ring";
-const previewClass =
-  "my-2 flex min-w-0 items-center overflow-hidden border-2 border-dashed border-primary bg-primary/20 px-2 text-xs data-not-allowed:cursor-not-allowed data-not-allowed:border-destructive data-not-allowed:bg-destructive/20";
 const groupClass = "flex items-center gap-1";
+// A strip along an event's edge; the calendar draws it only where the edge can be resized.
+const resizeHandle = "w-2 shrink-0 cursor-ew-resize hover:bg-primary/30";
 
 const declared = <T>(is: (u: unknown) => boolean) => Schema.declare((u): u is T => is(u));
 
@@ -102,6 +101,21 @@ const watchQueries = (name: string, queries: { subscribe(listener: () => void): 
     ),
   );
 
+/**
+ * The application's answer to a proposal: the calendar changes nothing itself, so the board
+ * accepts a proposal by updating the event it loaded, which publishes new events to the page.
+ */
+const proposalHandlerOf =
+  (props: {
+    readonly queries?: WindowQueries<SampleEvent> | undefined;
+    readonly onProposal?: ((proposal: SampleProposal) => void) | undefined;
+    readonly acceptProposals?: boolean | undefined;
+  }) =>
+  (proposal: SampleProposal) => {
+    props.onProposal?.(proposal);
+    if (props.acceptProposals !== false) props.queries?.update(proposal.after);
+  };
+
 const problems = <Msg>(h: Html.H<Msg>, issues: readonly TimelineInputIssue[]) =>
   h.div
     .attr("role", "alert")
@@ -124,10 +138,11 @@ const Board = <Msg>(
     readonly input: SampleBoard;
     readonly queries: WindowQueries<SampleEvent> | undefined;
     readonly resourceQueries: ResourceQueries | undefined;
-    readonly editing: EditingInput<any> | undefined;
+    readonly editing: EditingInput<{ kind: StayKind }> | undefined;
+    readonly onProposal: ((proposal: SampleProposal) => void) | undefined;
   },
 ) => {
-  const { view, preset, input, queries, resourceQueries, editing } = options;
+  const { view, preset, input, queries, resourceQueries, editing, onProposal } = options;
   const loaded = queries?.getSnapshot();
   const loadedResources = resourceQueries?.getSnapshot();
   const axisWidth = slotWidth[preset];
@@ -139,9 +154,8 @@ const Board = <Msg>(
       loading: queries && loaded && { coverage: loaded.coverage, onLoadWindow: queries.observe },
       resourceLoading: resourceQueries &&
         loadedResources && { coverage: loadedResources.coverage, onLoad: resourceQueries.observe },
-      editing,
-      // The application owns the events: it accepts each proposal by updating what it loaded.
-      onProposal: queries && ((proposal) => queries.update(proposal.after as SampleEvent)),
+      ...(editing && { editing }),
+      ...(onProposal && { onProposal }),
     },
     view: (timeline) => {
       if (timeline.status === "invalid") return problems(h, timeline.error.issues);
@@ -277,19 +291,34 @@ const Board = <Msg>(
                         .class(
                           cn(
                             "my-2 flex min-w-0 items-center overflow-hidden border-s-4 px-2 text-xs",
+                            "data-movable:cursor-grab data-editable:focus-visible:outline-2 data-editable:focus-visible:outline-ring",
                             kind === "maintenance"
                               ? "border-destructive bg-destructive/10"
                               : "border-primary bg-primary/10",
                             "data-starts-before:border-s-0 data-ends-after:border-e-0",
-                            editableEvent,
                           ),
                         ),
                       placement,
                     )
-                    .children(h.span.class("truncate font-medium").children(event.title));
+                    .children(
+                      timeline.resizeHandle(
+                        h.div.key("start").class(resizeHandle),
+                        placement,
+                        "start",
+                      ),
+                      h.span.key("title").class("truncate font-medium").children(event.title),
+                      timeline.resizeHandle(h.div.key("end").class(resizeHandle), placement, "end"),
+                    );
                 }),
                 timeline
-                  .preview(h.div.class(previewClass), row)
+                  .preview(
+                    h.div
+                      .key("preview")
+                      .class(
+                        "my-2 flex min-w-0 items-center overflow-hidden border-2 border-dashed border-primary bg-primary/20 px-2 text-xs data-not-allowed:cursor-not-allowed data-not-allowed:border-destructive data-not-allowed:bg-destructive/20",
+                      ),
+                    row,
+                  )
                   ?.children(
                     h.span
                       .class("truncate font-medium")
@@ -379,7 +408,8 @@ const Board = <Msg>(
 
 /**
  * A resource timeline with a toolbar for the scale and the time zone, and, with `queries`, for
- * moving to the window before or after. It is read-only unless `editing` is given.
+ * moving to the window before or after. It is read-only unless `editing` is given; with
+ * `resourceQueries` the rooms load a page or a branch at a time.
  */
 export const FrontDesk = Html.component({
   name: "FrontDesk",
@@ -389,10 +419,21 @@ export const FrontDesk = Html.component({
     queries: Schema.optional(declared<WindowQueries<SampleEvent>>((u) => typeof u === "object")),
     /** Loads the rooms a page or a branch at a time; `input.resources` are then not used. */
     resourceQueries: Schema.optional(declared<ResourceQueries>((u) => typeof u === "object")),
-    /** Lets the events move and resize; proposals are applied to `queries`. */
-    editing: Schema.optional(declared<EditingInput<any>>((u) => typeof u === "object")),
     anchor: Schema.optional(Schema.String),
     title: Schema.optional(Schema.String),
+    /** Lets the events move and resize. Without it the board is read-only. */
+    editing: Schema.optional(
+      declared<EditingInput<{ kind: StayKind }>>((u) => typeof u === "object" && u !== null),
+    ),
+    /** Called with each proposal the calendar makes, before the board decides on it. */
+    onProposal: Schema.optional(
+      declared<(proposal: SampleProposal) => void>((u) => typeof u === "function"),
+    ),
+    /**
+     * Whether the board accepts proposals, by updating the event in `queries`. Defaults to true;
+     * without `queries` there is nothing to update, so proposals are only reported.
+     */
+    acceptProposals: Schema.optional(Schema.Boolean),
   }),
   model: Schema.Struct({
     anchor: Schema.String,
@@ -491,6 +532,7 @@ export const FrontDesk = Html.component({
               queries: props.queries,
               resourceQueries: props.resourceQueries,
               editing: props.editing,
+              onProposal: props.editing && proposalHandlerOf(props),
             })
           : problems(h, view.failure.issues),
       );

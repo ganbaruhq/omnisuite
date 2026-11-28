@@ -4,6 +4,7 @@ import type { Html } from "@effect/ui/html";
 // `@tabler/icons-react` draws for the React components. Copied rather than imported: the
 // package's node data is one 2.3 MB JSON file.
 const paths = {
+  "layout-sidebar": ["M4 4h16v16h-16z", "M9 4v16"],
   x: ["M18 6l-12 12", "M6 6l12 12"],
   check: ["M5 12l5 5l10 -10"],
   "chevron-down": ["M6 9l6 6l6 -6"],

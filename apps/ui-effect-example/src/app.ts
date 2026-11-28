@@ -1,3 +1,4 @@
+import { WorkspaceShell } from "./workspace-shell";
 import { CollectionDetail } from "./pages/collection-detail";
 import { UiSchema, Validation } from "@effect/ui";
 import { Html } from "@effect/ui/html";
@@ -236,7 +237,7 @@ const Workspace = Html.component({
         Settled: () => undefined,
       },
       view: (dialog) =>
-        h.main.class("mx-auto flex max-w-2xl flex-col items-start gap-6 p-10").children(
+        h.div.class("mx-auto flex max-w-2xl flex-col items-start gap-6 p-10").children(
           h.div
             .class("flex flex-col gap-1")
             .children(
@@ -330,11 +331,17 @@ export const App = Html.component({
     ToastProvider(h, {
       view: (toastProvider) =>
         h.div(
-          Workspace(h, {}),
-          CollectionDetail(h, {}),
-          ChoiceControls(h, {}),
-          CollectionList(h, {}),
-          CalendarPage(h),
+          WorkspaceShell(h, {
+            slots: {
+              content: h.div(
+                Workspace(h, {}),
+                CollectionDetail(h, {}),
+                ChoiceControls(h, {}),
+                CollectionList(h, {}),
+                CalendarPage(h),
+              ),
+            },
+          }),
           toastProvider.toaster(h),
         ),
     }),

@@ -8,6 +8,7 @@ import {
   expansionToggleOf,
   laneLabelOf,
   placementBoxOf,
+  resizableEdgesOf,
   resourceHierarchyLogic,
   TimelineInputError,
   slotBoxOf,
@@ -21,6 +22,7 @@ import {
   type EventPlacement,
   type EventProposal,
   type PreviewDescription,
+  type ResizeEdge,
   type Timeline,
   type TimelineGroupRow,
   type TimelineResourceRow,
@@ -45,6 +47,13 @@ import {
   type TimelineEditor,
 } from "./editor.js";
 import { flag, withStyle } from "./host.js";
+import {
+  applyPointerFact,
+  PointerFact,
+  PointerPosition,
+  reevaluatePointer,
+  TimelinePointer,
+} from "./pointer.js";
 import {
   applyKeyboardAction,
   blurActionOf,
@@ -97,13 +106,13 @@ export const ResourceTimelineProps = Schema.Struct({
    */
   resourceLoading: Schema.optional(declared<ResourceLoadingOptions>(isObject)),
   /**
-   * Turns editing on: a focused event moves with Enter or Space and the arrows, and resizes with
-   * Alt or Shift and the arrows. Without it the timeline is read-only. Invalid options make the
-   * timeline `invalid`.
+   * Turns editing on: events move by dragging them and resize by their `resizeHandle`s, and a
+   * focused event moves with Enter or Space and the arrows and resizes with Alt or Shift and the
+   * arrows. Without it the timeline is read-only. Invalid options make the timeline `invalid`.
    */
   editing: Schema.optional(declared<EditingInput<any>>(isObject)),
   /**
-   * Called once when a changed, allowed destination is confirmed. The calendar does not change
+   * Called once when a changed, allowed destination is released or confirmed. The calendar does not change
    * the events: accept the proposal by supplying new events, or ignore it.
    */
   onProposal: Schema.optional(declared<(proposal: EventProposal<any>) => void>(isFunction)),
@@ -115,14 +124,16 @@ export const ResourceTimelineProps = Schema.Struct({
 export type ResourceTimelineProps = typeof ResourceTimelineProps.Type;
 
 // The snapshots of calendar-core's stores, as data: the viewer's expansion, the retries asked
-// for each window, the attempt last signalled for each window, and the edit gesture. After a
-// keyboard edit is proposed, `focusAfter` is the rendering to focus once the events change.
+// for each window, the attempt last signalled for each window, the edit gesture with where the
+// pointer is while it follows one, and resource loading. After a keyboard edit is proposed,
+// `focusAfter` is the rendering to focus once the events change.
 const Model = Schema.Struct({
   collapsedIds: Schema.Array(Schema.String),
   expandedIds: Schema.Array(Schema.String),
   retries: Schema.Record(Schema.String, Schema.Number),
   signalled: Schema.Record(Schema.String, Schema.Number),
   ...editorFields,
+  pointer: Schema.NullOr(PointerPosition),
   focusAfter: Schema.NullOr(Schema.Struct({ occurrenceId: Schema.String, layout: Schema.Number })),
   resources: ResourceLoadingState,
 });
@@ -133,8 +144,6 @@ const Message = UiSchema.TaggedEnum({
   ClickedRetryWindow: {},
   SignalledWindow: { key: Schema.String, attempt: Schema.Number },
   Keyboard: { action: KeyboardAction },
-  /** The props may have changed under a gesture. */
-  Reconciled: {},
   /** The events may have changed since a keyboard edit was proposed. */
   FocusDue: {},
   /** What resource loading reads may have changed. */
@@ -142,6 +151,9 @@ const Message = UiSchema.TaggedEnum({
   /** The viewer asked for a scope again: its failed page, or its next page. */
   RequestedResources: { parentId: Schema.NullOr(Schema.String) },
   SawListEnd: { visible: Schema.Boolean },
+  Pointer: { fact: PointerFact },
+  /** The props may have changed under a gesture. */
+  Reconciled: {},
 });
 
 // Used only for their pure `transition`: each instance keeps its own snapshot in its model.
@@ -177,8 +189,8 @@ const transitionWindows = (model: Model, event: WindowEvent): Model => {
 };
 
 /**
- * Applies an editor step: the next Model, and the application's callbacks called once the step
- * applies.
+ * Applies an editor step: the next Model, with the pointer forgotten once no gesture follows
+ * it, and the application's callbacks called once the step applies.
  */
 const applied = <Next>(
   $: {
@@ -188,10 +200,12 @@ const applied = <Next>(
   },
   step: EditorStep<Model>,
 ) => {
-  if (step.notices.length === 0) return step.state === $.model ? $.model : $.set(step.state);
-  const next = $.set(step.state) as Next & {
-    run(...commands: ReturnType<typeof notifyCommands>): Next;
-  };
+  const state =
+    step.state.gesture || step.state.pointer === null
+      ? step.state
+      : { ...step.state, pointer: null };
+  if (step.notices.length === 0) return state === $.model ? $.model : $.set(state);
+  const next = $.set(state) as Next & { run(...commands: ReturnType<typeof notifyCommands>): Next };
   return next.run(...notifyCommands($.props, step.notices));
 };
 
@@ -334,6 +348,7 @@ export const ResourceTimeline = Html.component({
     retries: {},
     signalled: {},
     ...idleEditor,
+    pointer: null,
     focusAfter: null,
     resources: idleResourceLoading,
   }),
@@ -353,6 +368,10 @@ export const ResourceTimeline = Html.component({
     },
     SignalledWindow: ($, { key, attempt }) =>
       $.evolve({ signalled: (signalled) => ({ ...signalled, [key]: attempt }) }),
+    Pointer: ($, { fact }) => {
+      const context = editorContextOf($.props, $.model);
+      return context ? applied($, applyPointerFact($.model, context, fact)) : $.model;
+    },
     Keyboard: ($, { action }) => {
       const context = editorContextOf($.props, $.model);
       return context ? appliedKeyboard($, applyKeyboardAction($.model, context, action)) : $.model;
@@ -360,9 +379,14 @@ export const ResourceTimeline = Html.component({
     Reconciled: ($) => {
       const context = editorContextOf($.props, $.model);
       const { state, current } = reconcileGesture($.model, context);
+      // Each input's gesture is evaluated again by its own rules.
       return applied(
         $,
-        current && context ? reevaluateKeyboard(state, context) : { state, notices: [] },
+        !current || !context
+          ? { state, notices: [] }
+          : state.gesture?.input === "keyboard"
+            ? reevaluateKeyboard(state, context)
+            : reevaluatePointer(state, context),
       );
     },
     FocusDue: ($) => {
@@ -468,8 +492,8 @@ export const ResourceTimeline = Html.component({
     const span = timeline?.span ?? 1;
 
     const gesture = editor?.gesture;
-    const root = p.part("div", (b) =>
-      withStyle(
+    const root = p.part("div", (b) => {
+      const built = withStyle(
         b.attrs({
           "data-timeline-root": "",
           "data-gesture": gesture?.input,
@@ -477,8 +501,16 @@ export const ResourceTimeline = Html.component({
           "data-cancel-reason": editor?.cancellation,
         }),
         { "--timeline-span": String(span) },
-      ),
-    );
+      );
+      return editor
+        ? built.onMount(
+            TimelinePointer({
+              span,
+              source: gesture?.input === "pointer" ? gesture.sourceResourceId : null,
+            }).pipe(Mount.map((fact) => Message.Pointer({ fact }))),
+          )
+        : built;
+    });
     const viewport = p.part("div", (b) =>
       withStyle(b.attrs({ "data-timeline-viewport": "", tabindex: "0" }), { overflow: "auto" }),
     );
@@ -580,6 +612,17 @@ export const ResourceTimeline = Html.component({
         dragging ? { opacity: "0", pointerEvents: "none" } : undefined,
       );
     });
+    const resizeHandlePart = p.part("div", (b, edge: ResizeEdge) =>
+      withStyle(
+        b.attrs({ "aria-hidden": "true", "data-timeline-resize-handle": "", "data-edge": edge }),
+        {
+          position: "absolute",
+          insetBlock: "0",
+          ...(edge === "start" ? { insetInlineStart: "0" } : { insetInlineEnd: "0" }),
+          touchAction: "none",
+        },
+      ),
+    );
     const previewPart = p.part("div", (b, row: TimelineResourceRow, shown: EditorPreview) => {
       const placement = shown.placement!;
       const box = placementBoxOf({ span }, row.laneCount, placement);
@@ -669,10 +712,27 @@ export const ResourceTimeline = Html.component({
       lane,
       event,
       /**
+       * A pointer target on one edge of an `event`: draw it inside the event, once per edge. It
+       * is undefined unless the event can be resized and the edge is the event's actual
+       * endpoint, not one the range clips. Give it a width, such as `w-2`. Pressing it resizes at
+       * once, with no hold, and the edge follows the pointer, snapped to the grid, until the
+       * pointer is released or Escape is pressed. It is hidden from assistive technology.
+       */
+      resizeHandle: <B extends Parameters<typeof resizeHandlePart>[0]>(
+        element: B,
+        placement: EventPlacement,
+        edge: ResizeEdge,
+      ) => {
+        const built = resizeHandlePart(element, edge);
+        return editor && resizableEdgesOf(placement, editor.canResize(placement.event))[edge]
+          ? built
+          : undefined;
+      },
+      /**
        * The result of the edit in progress, in the row it would land in: draw it inside every
        * `lane`. It is undefined except in that row, while the result is in the visible range.
        * Its accessible name describes the result, or says "Not allowed" when a rule rejects it
-       * (`data-status="rejected"`); confirming a rejected result proposes nothing.
+       * (`data-status="rejected"`); releasing or confirming a rejected result proposes nothing.
        */
       preview: <B extends Parameters<typeof previewPart>[0]>(
         element: B,

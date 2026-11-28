@@ -21,7 +21,8 @@ const queries = createWindowQueries(
 /**
  * A second calendar with queries of its own: the rooms load a page or a branch at a time, and the
  * stand-in server fails the first request for the annex's children, so that retrying a branch can
- * be tried. Its events move and resize from the keyboard.
+ * be tried. Its events move and resize
+ * too.
  */
 const lazy = {
   events: createWindowQueries(
@@ -32,10 +33,14 @@ const lazy = {
   ),
 };
 
-/** The read-only resource timeline, loading its events window by window, and an editable one. */
+/**
+ * The resource timeline, loading its events window by window, and a second one loading its rooms
+ * too. Their stays move and resize by the hour, and the page accepts every change the hostel's
+ * rule allows.
+ */
 export const CalendarPage = <Msg>(h: Html.H<Msg>) =>
   h.div.class("space-y-6 p-4 sm:p-8").children(
-    FrontDesk(h, { props: { input: sampleTimeline, queries } }),
+    FrontDesk(h, { props: { input: sampleTimeline, queries, editing: sampleEditing } }),
     FrontDesk(h, {
       key: "housekeeping",
       props: {
