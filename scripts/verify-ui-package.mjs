@@ -88,6 +88,17 @@ const published = await readFile(
 );
 assert.doesNotMatch(published, /catalog:|workspace:/);
 assert.match(published, /dist\/components\/\*\.js/);
+// Every peer names the versions it works with, and the Effect UI ones stay optional for React apps.
+const { peerDependencies = {}, peerDependenciesMeta = {} } = JSON.parse(published);
+assert.deepEqual(
+  Object.entries(peerDependencies).filter(([, range]) => range === "*" || range === ""),
+  [],
+  "Every peer dependency must have a version range.",
+);
+for (const name of ["@effect/ui", "@effect/ui-kit", "effect"]) {
+  assert.ok(peerDependencies[name], `${name} must stay a peer dependency.`);
+  assert.equal(peerDependenciesMeta[name]?.optional, true, `${name} must stay an optional peer.`);
+}
 // The Effect components stay workspace-only until Effect UI has a tagged release.
 const publishedExports = JSON.parse(published).exports;
 assert.ok(
