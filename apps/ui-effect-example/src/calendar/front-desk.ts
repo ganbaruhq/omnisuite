@@ -9,7 +9,7 @@ import {
   type TimelineRow,
   type TimelineView,
 } from "@omnisuite/calendar-core";
-import { ResourceTimeline } from "@omnisuite/calendar-effect";
+import { declared, ResourceTimeline } from "@omnisuite/calendar-effect";
 import { Button } from "@omnisuite/ui/effect/components/button";
 import { cn } from "cn";
 import { Effect, Queue, Schema, Stream } from "effect";
@@ -48,8 +48,6 @@ const resourceColumn = "sticky start-0 z-10 w-52 shrink-0 border-e bg-card";
 const groupClass = "flex items-center gap-1";
 // A strip along an event's edge; the calendar draws it only where the edge can be resized.
 const resizeHandle = "w-2 shrink-0 cursor-ew-resize hover:bg-primary/30";
-
-const declared = <T>(is: (u: unknown) => boolean) => Schema.declare((u): u is T => is(u));
 
 const Message = UiSchema.TaggedEnum({
   PickedPreset: { preset: Schema.Literals(presets) },

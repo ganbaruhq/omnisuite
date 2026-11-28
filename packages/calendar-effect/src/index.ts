@@ -10,3 +10,4 @@ export {
   type ResourceTimelineLoading,
 } from "./resource-timeline.js";
 export type { WindowLoadingOptions } from "./window-loading.js";
+export { declared, isArray, isFunction, isObject } from "./schema.js";

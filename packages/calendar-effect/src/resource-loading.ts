@@ -16,6 +16,7 @@ import {
   type TimelineRow,
 } from "@omnisuite/calendar-core";
 import { Effect, Queue, Schema, Stream } from "effect";
+import { declared, isObject } from "./schema.js";
 
 // Resource loading, as calendar-react's `useResourceLoading` does it: the top level of the tree is
 // asked for when the end of the list comes into view, and the children of a parent with
@@ -55,9 +56,6 @@ export interface ResourceLoading<TError = unknown> {
   /** The children of a parent, loaded when it is expanded. */
   branch(parentId: string): ResourceScopeLoading<TError>;
 }
-
-const declared = <T>(is: (u: unknown) => boolean) => Schema.declare((u): u is T => is(u));
-const isObject = (u: unknown) => typeof u === "object" && u !== null;
 
 const Observation = Schema.Struct({
   /** The page and the attempt this observation is for: a different one replaces it. */

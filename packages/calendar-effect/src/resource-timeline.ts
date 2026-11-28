@@ -76,11 +76,7 @@ import {
   type ResourceScopeLoading,
 } from "./resource-loading.js";
 import { loadWindow, windowOf, type WindowLoadingOptions } from "./window-loading.js";
-
-const declared = <T>(is: (u: unknown) => boolean) => Schema.declare((u): u is T => is(u));
-const isArray = (u: unknown) => Array.isArray(u);
-const isObject = (u: unknown) => typeof u === "object" && u !== null;
-const isFunction = (u: unknown) => typeof u === "function";
+import { declared, isArray, isObject, isFunction } from "./schema.js";
 
 /**
  * The props of a {@link ResourceTimeline}: the same input as calendar-react's

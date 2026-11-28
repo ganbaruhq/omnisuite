@@ -30,13 +30,11 @@ import {
   type TimelineRow,
 } from "@omnisuite/calendar-core";
 import { Effect, Schema } from "effect";
+import { declared, isObject, isFunction } from "./schema.js";
 
 // The editing shared by every input: the gesture store's snapshot kept as data, the evaluation
 // shown as the preview, what is announced, and what is emitted to the application. The pointer
 // and the keyboard each work out an evaluation and hand it here. Nothing here touches the DOM.
-
-const declared = <T>(is: (u: unknown) => boolean) => Schema.declare((u): u is T => is(u));
-const isObject = (u: unknown) => typeof u === "object" && u !== null;
 
 const editRules = ["constraint", "overlap", "allow"] as const;
 
@@ -69,8 +67,6 @@ export type EditorNotice =
       readonly rule: EditRule;
       readonly proposal: EventProposal<any>;
     };
-
-const isFunction = (u: unknown) => typeof u === "function";
 
 /** Calls `onProposal` after the update that settled the gesture. */
 export const NotifyProposal = Command.make(
