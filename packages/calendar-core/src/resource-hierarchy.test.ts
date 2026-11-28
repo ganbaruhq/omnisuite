@@ -2,6 +2,7 @@ import { Result } from "effect";
 import { describe, expect, it } from "vite-plus/test";
 import {
   decodeTimelineResult,
+  expansionToggleOf,
   resourceHierarchyLogic,
   visibleTimelineRows,
   type CalendarNodeInput,
@@ -188,4 +189,21 @@ describe("hierarchy validation", () => {
       ]);
     },
   );
+});
+
+describe("expansionToggleOf", () => {
+  const rows = timelineOf(input()).rows;
+
+  it("asks to collapse an open parent and to expand a collapsed one", () => {
+    expect(expansionToggleOf(rows, new Set(), "floor")).toEqual({ id: "floor", expanded: false });
+    expect(expansionToggleOf(rows, new Set(["floor"]), "floor")).toEqual({
+      id: "floor",
+      expanded: true,
+    });
+  });
+
+  it("asks nothing for a row without children or a node that is not shown", () => {
+    expect(expansionToggleOf(rows, new Set(), "bed")).toBeUndefined();
+    expect(expansionToggleOf(rows, new Set(), "missing")).toBeUndefined();
+  });
 });

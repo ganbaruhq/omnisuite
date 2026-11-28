@@ -3,8 +3,10 @@ import { describe, expect, it } from "vite-plus/test";
 import {
   decodeTimelineResult,
   intersectsWindow,
+  isWindowRetry,
   observeWindow,
   timelineWindowOf,
+  windowAttemptOf,
   windowLoadingLogic,
   windowStateOf,
   WindowObserverError,
@@ -148,6 +150,23 @@ describe("windowLoadingLogic", () => {
     store.trigger.retryRequested({ key: "b" });
 
     expect(store.getSnapshot().context.retries).toEqual({ a: 2, b: 1 });
+  });
+});
+
+describe("windowAttemptOf", () => {
+  it("is the number of retries asked for a window, and 0 before any", () => {
+    expect(windowAttemptOf({ a: 2 }, "a")).toBe(2);
+    expect(windowAttemptOf({ a: 2 }, "b")).toBe(0);
+  });
+});
+
+describe("isWindowRetry", () => {
+  it("is a retry only for an attempt not yet signalled for that window", () => {
+    expect(isWindowRetry({}, "a", 0)).toBe(false);
+    expect(isWindowRetry({}, "a", 1)).toBe(true);
+    expect(isWindowRetry({ a: 1 }, "a", 1)).toBe(false);
+    expect(isWindowRetry({ a: 1 }, "a", 2)).toBe(true);
+    expect(isWindowRetry({ a: 1 }, "b", 0)).toBe(false);
   });
 });
 

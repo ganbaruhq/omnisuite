@@ -1,6 +1,8 @@
 import {
+  isWindowRetry,
   observeWindow,
   timelineWindowOf,
+  windowAttemptOf,
   windowLoadingLogic,
   windowStateOf,
   WindowObserverError,
@@ -52,7 +54,7 @@ export function useWindowLoading<TError>(
   const window = useMemo(() => (timeline ? timelineWindowOf(timeline) : undefined), [timeline]);
   const key = window?.key;
   const attempt = useSelector(store, (snapshot) =>
-    key === undefined ? 0 : (snapshot.context.retries[key] ?? 0),
+    key === undefined ? 0 : windowAttemptOf(snapshot.context.retries, key),
   );
   const latest = useRef({ window, onLoadWindow: options?.onLoadWindow });
   useLayoutEffect(() => {
@@ -65,8 +67,7 @@ export function useWindowLoading<TError>(
   useEffect(() => {
     const { window, onLoadWindow } = latest.current;
     if (!observing || !window || !onLoadWindow) return;
-    // Coming back to a window that was once retried is not a retry.
-    const retry = attempt > (signalled.current[window.key] ?? 0);
+    const retry = isWindowRetry(signalled.current, window.key, attempt);
     signalled.current[window.key] = attempt;
     // The scope belongs to this effect: closing it ends only this observation.
     const scope = Effect.runSync(Scope.make());

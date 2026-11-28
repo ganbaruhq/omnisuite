@@ -7,7 +7,16 @@ export type {
   CalendarNode,
   CalendarNodeInput,
 } from "./resource.js";
-export { collapsedIdsOf, resourceHierarchyLogic } from "./resource-hierarchy.js";
+export { collapsedIdsOf, expansionToggleOf, resourceHierarchyLogic } from "./resource-hierarchy.js";
+export {
+  disclosureDescriptionOf,
+  disclosureLabelOf,
+  laneLabelOf,
+  placementBoxOf,
+  slotBoxOf,
+  type PlacementBox,
+  type SlotBox,
+} from "./rendering.js";
 export { TimelineInputError, type TimelineInputIssue } from "./input-error.js";
 export {
   timelinePresets,
@@ -61,8 +70,10 @@ export {
 } from "./gesture.js";
 export {
   intersectsWindow,
+  isWindowRetry,
   observeWindow,
   timelineWindowOf,
+  windowAttemptOf,
   windowLoadingLogic,
   windowStateOf,
   WindowObserverError,

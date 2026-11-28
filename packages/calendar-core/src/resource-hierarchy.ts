@@ -47,3 +47,17 @@ export function collapsedIdsOf(
       collapsed.add(resource.id);
   return collapsed;
 }
+
+/**
+ * What pressing the disclosure of node `id` asks for, as a `setExpanded` event: to expand it when
+ * it is collapsed now, and to collapse it otherwise. It asks nothing for a node that is not among
+ * `rows` or has no children.
+ */
+export function expansionToggleOf(
+  rows: readonly Pick<TimelineRow, "hasChildren" | "resource">[],
+  collapsedIds: ReadonlySet<string>,
+  id: string,
+): { readonly id: string; readonly expanded: boolean } | undefined {
+  if (!rows.some((row) => row.resource.id === id && row.hasChildren)) return undefined;
+  return { id, expanded: collapsedIds.has(id) };
+}
