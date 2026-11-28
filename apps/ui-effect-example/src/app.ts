@@ -17,6 +17,7 @@ import { Switch } from "@omnisuite/ui/effect/components/switch";
 import { Textarea } from "@omnisuite/ui/effect/components/textarea";
 import { ToastProvider } from "@omnisuite/ui/effect/components/toast";
 import { Tooltip } from "@omnisuite/ui/effect/components/tooltip";
+import { CollectionList } from "./collection-list";
 
 // ---------------------------------------------------------------------------
 // The form's rules
@@ -320,6 +321,7 @@ export const App = Html.component({
   update: ($) => $.model,
   view: (h) =>
     ToastProvider(h, {
-      view: (toastProvider) => h.div(Workspace(h, {}), toastProvider.toaster(h)),
+      view: (toastProvider) =>
+        h.div(Workspace(h, {}), CollectionList(h, {}), toastProvider.toaster(h)),
     }),
 });
