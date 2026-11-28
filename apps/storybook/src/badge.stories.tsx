@@ -15,7 +15,7 @@ import {
 // one story per type (Pill / Badge / Modern), each with every content row at sm · md · lg.
 
 const meta = {
-  title: "Components/Badge",
+  title: "React/Components/Badge",
   component: Badge,
   args: { children: "Label", variant: "pill-color", color: "brand", size: "md" },
 } satisfies Meta<typeof Badge>;

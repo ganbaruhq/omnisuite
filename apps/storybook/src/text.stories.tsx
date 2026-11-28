@@ -1,6 +1,6 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
 import { Text } from "@omnisuite/ui/components/text";
-const meta = { title: "Foundations/Typography", component: Text } satisfies Meta<typeof Text>;
+const meta = { title: "React/Components/Typography", component: Text } satisfies Meta<typeof Text>;
 export default meta;
 type Story = StoryObj<typeof meta>;
 export const Scale: Story = {

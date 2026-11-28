@@ -7,7 +7,7 @@ import { createWindowQueries } from "@omnisuite/calendar-sample-data/window-quer
 import type { SampleEvent } from "./calendar/front-desk";
 import * as stories from "./front-desk.stories";
 
-const { Light } = composeStories(stories);
+const { Default } = composeStories(stories);
 
 it("disposes pending observations and DOM when React unmounts, including StrictMode replay", async () => {
   const signals: AbortSignal[] = [];
@@ -23,7 +23,7 @@ it("disposes pending observations and DOM when React unmounts, including StrictM
         StrictMode,
         {},
         createElement(() =>
-          Light({
+          Default({
             boardProps: { input: flatTimeline, queries },
           }),
         ),

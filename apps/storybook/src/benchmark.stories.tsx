@@ -37,7 +37,7 @@ import { Tooltip, TooltipContent, TooltipTrigger } from "@omnisuite/ui/component
 // The React twin of the Effect UI "New collection" form in `effect/benchmark.stories.tsx`. Keep the two in step: they are compared side by side, in light and dark.
 
 const meta = {
-  title: "Benchmark/New collection",
+  title: "React/Form/New collection",
   parameters: { layout: "fullscreen" },
   decorators: [
     (Story) => (

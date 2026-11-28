@@ -2,7 +2,7 @@ import { composeStories } from "@storybook/react-vite";
 import { createElement } from "react";
 import { createRoot, type Root } from "react-dom/client";
 import * as stories from "../front-desk.stories";
-const { Light } = composeStories(stories);
+const { Default } = composeStories(stories);
 import { afterEach, beforeEach, describe, expect, it, vi } from "vite-plus/test";
 import { page, userEvent } from "vite-plus/test/browser";
 import type { SampleProposal } from "./front-desk";
@@ -54,7 +54,7 @@ async function mount({ acceptProposals = true } = {}) {
   reactRoot = createRoot(container);
   reactRoot.render(
     createElement(() =>
-      Light({
+      Default({
         boardProps: { input: flatTimeline, queries, editing: sampleEditing, acceptProposals },
         onProposal: (proposal) => proposals.push(proposal),
       }),

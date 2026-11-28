@@ -9,7 +9,7 @@ import {
 } from "@omnisuite/ui/components/empty";
 import { EmptyIllustration } from "@omnisuite/ui/components/empty-illustration";
 import { Button } from "@omnisuite/ui/components/button";
-const meta = { title: "Components/Empty", component: Empty } satisfies Meta<typeof Empty>;
+const meta = { title: "React/Components/Empty", component: Empty } satisfies Meta<typeof Empty>;
 export default meta;
 type Story = StoryObj<typeof meta>;
 export const Illustrated: Story = {

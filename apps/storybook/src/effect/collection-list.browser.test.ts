@@ -4,7 +4,7 @@ import { createRoot, type Root } from "react-dom/client";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vite-plus/test";
 import { page, userEvent } from "vite-plus/test/browser";
 import * as stories from "./workspace.stories";
-const { Light } = composeStories(stories);
+const { Default } = composeStories(stories);
 import "../styles.css";
 
 // The collection list in the example app, checked for what only a real browser shows: the
@@ -29,7 +29,7 @@ beforeEach(async () => {
   await page.viewport(1280, 900);
   container = document.body.appendChild(document.createElement("div"));
   root = createRoot(container);
-  root.render(createElement(Light));
+  root.render(createElement(Default));
   await expect.poll(() => filtersTrigger()).toBeTruthy();
 });
 

@@ -2,7 +2,7 @@ import { composeStories } from "@storybook/react-vite";
 import { createElement } from "react";
 import { createRoot, type Root } from "react-dom/client";
 import * as stories from "../housekeeping.stories";
-const { Light } = composeStories(stories);
+const { Default } = composeStories(stories);
 import { occurrenceIdOf } from "@omnisuite/calendar-core";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vite-plus/test";
 import { page, userEvent } from "vite-plus/test/browser";
@@ -57,7 +57,7 @@ afterEach(async () => {
 function launch(props: BoardProps) {
   container = document.body.appendChild(document.createElement("div"));
   reactRoot = createRoot(container);
-  reactRoot.render(createElement(() => Light({ boardProps: props })));
+  reactRoot.render(createElement(() => Default({ boardProps: props })));
 }
 
 /** The flat board with its events loaded at once, editable, applying what it proposes. */

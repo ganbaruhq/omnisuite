@@ -4,7 +4,7 @@ import { Toaster, toast } from "@omnisuite/ui/components/toast";
 import { IconCube } from "@tabler/icons-react";
 
 const meta = {
-  title: "Components/Toast",
+  title: "React/Components/Toast",
   decorators: [
     (Story) => (
       <>

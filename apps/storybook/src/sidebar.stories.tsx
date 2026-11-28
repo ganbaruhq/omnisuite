@@ -15,7 +15,10 @@ import {
   SidebarTrigger,
   SidebarRail,
 } from "@omnisuite/ui/components/sidebar";
-const meta = { title: "Components/Sidebar", parameters: { layout: "fullscreen" } } satisfies Meta;
+const meta = {
+  title: "React/Components/Sidebar",
+  parameters: { layout: "fullscreen" },
+} satisfies Meta;
 export default meta;
 type Story = StoryObj<typeof meta>;
 export const Navigation: Story = {

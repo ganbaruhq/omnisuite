@@ -4,7 +4,7 @@ import { StatusDot } from "@omnisuite/ui/components/status-dot";
 import { Tag, TagAvatar, TagCount, TagGroup } from "@omnisuite/ui/components/tag";
 
 const meta = {
-  title: "Components/Tag",
+  title: "React/Components/Tag",
   component: Tag,
   args: { children: "Label" },
 } satisfies Meta<typeof Tag>;

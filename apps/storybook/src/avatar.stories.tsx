@@ -1,7 +1,7 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
 import { Avatar, AvatarFallback } from "@omnisuite/ui/components/avatar";
 
-const meta = { title: "Components/Avatar", component: Avatar } satisfies Meta<typeof Avatar>;
+const meta = { title: "React/Components/Avatar", component: Avatar } satisfies Meta<typeof Avatar>;
 export default meta;
 type Story = StoryObj<typeof meta>;
 

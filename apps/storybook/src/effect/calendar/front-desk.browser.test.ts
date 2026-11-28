@@ -2,7 +2,7 @@ import { composeStories } from "@storybook/react-vite";
 import { createElement } from "react";
 import { createRoot, type Root } from "react-dom/client";
 import * as stories from "../front-desk.stories";
-const { Light } = composeStories(stories);
+const { Default } = composeStories(stories);
 import type { TimelineWindow } from "@omnisuite/calendar-core";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vite-plus/test";
 import { page, userEvent } from "vite-plus/test/browser";
@@ -53,7 +53,7 @@ async function mount(input: SampleBoard, fetchWindow?: FetchWindow<SampleEvent>)
   container = document.body.appendChild(document.createElement("div"));
   reactRoot = createRoot(container);
   reactRoot.render(
-    createElement(() => Light({ boardProps: queries ? { input, queries } : { input } })),
+    createElement(() => Default({ boardProps: queries ? { input, queries } : { input } })),
   );
   await expect.poll(() => document.querySelector("[data-timeline-root]")).toBeTruthy();
 }

@@ -31,7 +31,7 @@ import {
   DrawerClose,
 } from "@omnisuite/ui/components/drawer";
 import { useIsMobile } from "@omnisuite/ui/hooks/use-mobile";
-const meta = { title: "Components/Overlays" } satisfies Meta;
+const meta = { title: "React/Components/Overlays" } satisfies Meta;
 export default meta;
 type Story = StoryObj<typeof meta>;
 export const DialogExample: Story = {

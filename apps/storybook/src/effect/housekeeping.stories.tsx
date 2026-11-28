@@ -5,7 +5,7 @@ import { housekeepingProps } from "./calendar/props";
 import { verifyMount } from "./verify-mount";
 
 const meta: Meta<typeof CalendarExample> = {
-  title: "Effect/Calendar/Housekeeping",
+  title: "Effect/Components/Calendar housekeeping",
   component: CalendarExample,
   parameters: { layout: "fullscreen" },
   play: verifyMount,
@@ -15,6 +15,3 @@ export default meta;
 type Story = StoryObj<typeof CalendarExample>;
 
 export const Default: Story = {};
-
-export const Light: Story = { globals: { theme: "light" } };
-export const Dark: Story = { globals: { theme: "dark" } };

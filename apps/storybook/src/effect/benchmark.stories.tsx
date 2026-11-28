@@ -6,7 +6,7 @@ import { EffectMount } from "./effect-mount";
 import { verifyMount } from "./verify-mount";
 
 const meta = {
-  title: "Effect/Benchmark/New collection",
+  title: "Effect/Form/New collection",
   component: EffectMount,
   parameters: { layout: "fullscreen" },
   play: verifyMount,
@@ -16,6 +16,3 @@ export default meta;
 type Story = StoryObj<typeof meta>;
 
 export const Default: Story = {};
-
-export const Light: Story = { globals: { theme: "light" } };
-export const Dark: Story = { globals: { theme: "dark" } };

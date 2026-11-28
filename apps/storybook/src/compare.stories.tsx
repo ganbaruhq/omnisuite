@@ -8,7 +8,7 @@ const { Page: ReactBenchmark } = composeStories(reactStories);
 const { Default: EffectBenchmark } = composeStories(effectStories);
 
 const meta = {
-  title: "Compare/Benchmark/New collection",
+  title: "Effect/Form/New collection vs React",
   parameters: { layout: "fullscreen" },
   play: verifyMount,
   render: () => (
@@ -28,5 +28,3 @@ export default meta;
 type Story = StoryObj<typeof meta>;
 
 export const Default: Story = {};
-export const Light: Story = { globals: { theme: "light" } };
-export const Dark: Story = { globals: { theme: "dark" } };

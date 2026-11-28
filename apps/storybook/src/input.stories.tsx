@@ -2,7 +2,7 @@ import type { Meta, StoryObj } from "@storybook/react-vite";
 import { Input } from "@omnisuite/ui/components/input";
 import { Textarea } from "@omnisuite/ui/components/textarea";
 const meta = {
-  title: "Components/Input",
+  title: "React/Components/Input",
   component: Input,
   args: { placeholder: "Collection name", "aria-label": "Collection name" },
 } satisfies Meta<typeof Input>;

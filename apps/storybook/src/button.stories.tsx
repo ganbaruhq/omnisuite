@@ -4,7 +4,7 @@ import { ButtonGroup } from "@omnisuite/ui/components/button-group";
 import { FancyButton } from "@omnisuite/ui/components/fancy-button";
 
 const meta = {
-  title: "Components/Button",
+  title: "React/Components/Button",
   component: Button,
   args: { children: "Save changes" },
 } satisfies Meta<typeof Button>;
