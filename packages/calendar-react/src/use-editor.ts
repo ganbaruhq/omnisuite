@@ -1,5 +1,13 @@
 import {
+  cancelMessageOf,
   decodeEditingResult,
+  describePreviewInEnglish,
+  editCapabilityOf,
+  editFingerprintOf,
+  evaluationKeyOf,
+  previewDescriptionOf,
+  unchangedMessageOf,
+  untargetedMessageOf,
   editGestureLogic,
   evaluateMove,
   evaluateResize,
@@ -16,6 +24,7 @@ import {
   type EditRule,
   type EventPlacement,
   type EventProposal,
+  type PreviewDescription,
   type ResizeEdge,
   type Timeline,
   type TimelineInputError,
@@ -24,20 +33,7 @@ import {
 import { useSelector, useStore } from "@xstate/store-react";
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 
-/** What a preview shows, for describing it to someone who cannot see it. */
-export interface PreviewDescription<TEventData = unknown> {
-  /** `unchanged` is the event staying where it is; `rejected` is a destination that is not allowed. */
-  readonly status: "allowed" | "unchanged" | "rejected";
-  /** The rule that rejected the destination. */
-  readonly rule?: EditRule;
-  /** What the rule threw, when it threw instead of answering. */
-  readonly error?: unknown;
-  readonly proposal: EventProposal<TEventData>;
-  readonly title: string;
-  /** The titles of the resources the event would be on. */
-  readonly resourceTitles: readonly string[];
-  readonly timeZone: string;
-}
+export type { PreviewDescription };
 
 export interface EditorOptions<TEventData = unknown> {
   /**
@@ -115,83 +111,6 @@ export interface Point {
 export interface DragManager {
   readonly actions: { stop(args?: { canceled?: boolean }): unknown };
 }
-
-const dateFormat = (timeZone: string) =>
-  new Intl.DateTimeFormat("en", { dateStyle: "medium", timeStyle: "short", timeZone });
-
-const ruleText: Record<EditRule, string> = {
-  constraint: "outside the allowed times",
-  overlap: "overlaps another event",
-  allow: "not permitted",
-};
-
-function describeInEnglish(preview: PreviewDescription): string {
-  const format = dateFormat(preview.timeZone);
-  const when = `${format.format(Date.parse(preview.proposal.after.start))} to ${format.format(
-    Date.parse(preview.proposal.after.end),
-  )}`;
-  const where = preview.resourceTitles.join(", ");
-  if (preview.status === "rejected") {
-    const why = preview.error !== undefined ? "a rule failed" : ruleText[preview.rule!];
-    return `Not allowed: ${preview.title} on ${where}, ${when} (${why})`;
-  }
-  if (preview.status === "unchanged") return `${preview.title} stays on ${where}, ${when}`;
-  return preview.proposal.operation === "resize"
-    ? `Resize the ${preview.proposal.edge} of ${preview.title} on ${where}, ${when}`
-    : `Move ${preview.title} to ${where}, ${when}`;
-}
-
-const cancelText = (operation: EditOperation, reason: EditCancelReason) => {
-  const action = operation === "resize" ? "Resize" : "Move";
-  switch (reason) {
-    case "escape":
-    case "blur":
-      return `${action} cancelled.`;
-    case "invalid-target":
-      return `${action} cancelled: not over a resource.`;
-    case "rejected":
-      return `${action} cancelled: that ${operation === "resize" ? "interval" : "destination"} is not allowed.`;
-    case "event-removed":
-      return `${action} cancelled: the event was removed.`;
-    case "event-changed":
-      return `${action} cancelled: the event changed.`;
-  }
-};
-
-/** Identifies an event's values, so that a change under a gesture can be told from a re-render. */
-const fingerprintOf = (event: CalendarEvent<any>) =>
-  JSON.stringify([
-    event.id,
-    event.title,
-    event.start.toString(),
-    event.end.toString(),
-    event.resourceIds,
-    event.startEditable,
-    event.resourceEditable,
-    event.durationEditable,
-    event.constraint?.map(({ start, end, resourceIds }) => [
-      start.toString(),
-      end.toString(),
-      resourceIds,
-    ]),
-    event.overlap,
-  ]);
-
-/** Identifies what an evaluation shows, so an unchanged one does not update the store. */
-const evaluationKey = (evaluation: EditEvaluation<any> | undefined) => {
-  if (!evaluation) return "";
-  if (evaluation.status === "unavailable") return `unavailable:${evaluation.reason}`;
-  const { targetResourceId, after } = evaluation.proposal;
-  return JSON.stringify([
-    evaluation.status,
-    evaluation.status === "rejected" ? evaluation.rule : "",
-    evaluation.status === "rejected" && evaluation.error !== undefined,
-    targetResourceId,
-    after.start,
-    after.end,
-    after.resourceIds,
-  ]);
-};
 
 /**
  * Decodes the editing options, once per change of their values. The rules are called through the
@@ -279,28 +198,20 @@ export function useEditor<TResourceData, TEventData>(
   const shown = useRef("");
   const focusAfter = useRef<string | undefined>(undefined);
 
-  const resourceEditableOf = (event: CalendarEvent<any>) =>
-    event.resourceEditable ?? latest.current.editing?.resourceEditable ?? false;
-  const timeEditableOf = (event: CalendarEvent<any>) =>
-    event.startEditable ?? latest.current.editing?.startEditable ?? false;
-  const durationEditableOf = (event: CalendarEvent<any>) =>
-    event.durationEditable ?? latest.current.editing?.durationEditable ?? false;
+  const capabilityOf = (event: CalendarEvent<any>) =>
+    editCapabilityOf(event, latest.current.editing);
   // Read during render, so from the editing given now rather than from the ref.
   const canMove = useCallback(
-    (event: CalendarEvent<any>) =>
-      editing !== undefined &&
-      ((event.startEditable ?? editing.startEditable) ||
-        (event.resourceEditable ?? editing.resourceEditable)),
+    (event: CalendarEvent<any>) => editCapabilityOf(event, editing).move,
     [editing],
   );
   const canResize = useCallback(
-    (event: CalendarEvent<any>) =>
-      editing !== undefined && (event.durationEditable ?? editing.durationEditable),
+    (event: CalendarEvent<any>) => editCapabilityOf(event, editing).duration,
     [editing],
   );
   const canEdit = useCallback(
-    (event: CalendarEvent<any>) => canMove(event) || canResize(event),
-    [canMove, canResize],
+    (event: CalendarEvent<any>) => editCapabilityOf(event, editing).edit,
+    [editing],
   );
 
   const eventOf = (eventId: string) =>
@@ -309,25 +220,14 @@ export function useEditor<TResourceData, TEventData>(
     status: PreviewDescription["status"],
     proposal: EventProposal<any>,
     rejection?: { rule: EditRule; error?: unknown },
-  ) => {
-    const current = latest.current;
-    const titles = new Map(
-      current.timeline?.rows.map(({ resource }) => [resource.id, resource.title]),
+  ) =>
+    (latest.current.options.describe ?? describePreviewInEnglish)(
+      previewDescriptionOf(latest.current.timeline, status, proposal, rejection),
     );
-    const description: PreviewDescription<any> = {
-      status,
-      proposal,
-      title: proposal.after.title,
-      resourceTitles: proposal.after.resourceIds.map((id) => titles.get(id) ?? id),
-      timeZone: current.timeline?.timeZone ?? "UTC",
-      ...(rejection && { rule: rejection.rule, error: rejection.error }),
-    };
-    return (current.options.describe ?? describeInEnglish)(description);
-  };
 
   /** Shows what releasing the gesture now would do, and reports a rule that threw. */
   const show = (evaluation: EditEvaluation<any> | undefined) => {
-    const key = evaluationKey(evaluation);
+    const key = evaluationKeyOf(evaluation);
     if (evaluation?.status === "rejected" && evaluation.error !== undefined) {
       if (!reported.current.has(evaluation.rule)) {
         reported.current.add(evaluation.rule);
@@ -452,7 +352,7 @@ export function useEditor<TResourceData, TEventData>(
     const active = current();
     if (!active) return;
     store.trigger.gestureCanceled({ reason });
-    setOutcome(cancelText(active.operation, reason));
+    setOutcome(cancelMessageOf(active.operation, reason));
     finish();
     // Only a move is a drag of dnd-kit's; a resize follows the pointer itself.
     if (stopDrag && active.input === "pointer" && active.operation === "move")
@@ -469,9 +369,7 @@ export function useEditor<TResourceData, TEventData>(
     store.trigger.gestureEnded();
     finish();
     if (evaluation.status === "unchanged") {
-      setOutcome(
-        `${evaluation.proposal.after.title} was not ${active.operation === "resize" ? "resized" : "moved"}.`,
-      );
+      setOutcome(unchangedMessageOf(active.operation, evaluation.proposal.after.title));
       return;
     }
     setOutcome(describeProposal("allowed", evaluation.proposal));
@@ -491,10 +389,8 @@ export function useEditor<TResourceData, TEventData>(
   ) => {
     const event = eventOf(eventId);
     if (current() || !event) return false;
-    const allowed =
-      operation === "resize"
-        ? durationEditableOf(event)
-        : timeEditableOf(event) || resourceEditableOf(event);
+    const capability = capabilityOf(event);
+    const allowed = operation === "resize" ? capability.duration : capability.move;
     if (!allowed) return false;
     store.trigger.gestureStarted({
       input,
@@ -502,7 +398,7 @@ export function useEditor<TResourceData, TEventData>(
       ...(edge && { edge }),
       eventId,
       sourceResourceId: resourceId,
-      fingerprint: fingerprintOf(event),
+      fingerprint: editFingerprintOf(event),
     });
     reported.current.clear();
     shown.current = "";
@@ -597,15 +493,15 @@ export function useEditor<TResourceData, TEventData>(
           const active = current();
           const event = active && eventOf(active.eventId);
           if (!active || !event) return;
-          if (!(active.operation === "resize" ? durationEditableOf(event) : timeEditableOf(event)))
-            return;
+          const capability = capabilityOf(event);
+          if (!(active.operation === "resize" ? capability.duration : capability.time)) return;
           store.trigger.stepped({ by });
           evaluateKeyboard();
         },
         row: (by) => {
           const active = current();
           const event = active && eventOf(active.eventId);
-          if (!active || active.operation !== "move" || !event || !resourceEditableOf(event))
+          if (!active || active.operation !== "move" || !event || !capabilityOf(event).resource)
             return;
           const ids = latest.current.rows.flatMap((row) =>
             row.kind === "resource" ? [row.resource.id] : [],
@@ -648,7 +544,7 @@ export function useEditor<TResourceData, TEventData>(
     if (!latest.current.editing) return cancel("event-changed");
     const event = eventOf(active.eventId);
     if (!event) return cancel("event-removed");
-    if (fingerprintOf(event) !== active.fingerprint) return cancel("event-changed");
+    if (editFingerprintOf(event) !== active.fingerprint) return cancel("event-changed");
     reevaluate();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [timeline, editing]);
@@ -716,7 +612,7 @@ export function useEditor<TResourceData, TEventData>(
 
   const message = gesture
     ? (preview?.description ??
-      `${gesture.operation === "resize" ? "Resizing" : "Moving"} ${eventOf(gesture.eventId)?.title ?? ""}: not over a resource.`)
+      untargetedMessageOf(gesture.operation, eventOf(gesture.eventId)?.title ?? ""))
     : outcome;
 
   const value = useMemo<TimelineEditor | undefined>(

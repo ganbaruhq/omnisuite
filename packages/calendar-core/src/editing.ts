@@ -107,6 +107,45 @@ export interface Editing<TEventData = unknown> {
   readonly allow: EditingInput<TEventData>["allow"];
 }
 
+/** What a gesture may change of one event: its own settings, or else the timeline's. */
+export interface EditCapability {
+  /** Its time can be moved. */
+  readonly time: boolean;
+  /** It can be moved to other resources. */
+  readonly resource: boolean;
+  /** Either of its edges can be resized. */
+  readonly duration: boolean;
+  /** It can be moved at all: in time, to another resource, or both. */
+  readonly move: boolean;
+  /** It can be moved or resized. */
+  readonly edit: boolean;
+}
+
+/** What `event` lets a gesture change; nothing without `editing`. */
+export function editCapabilityOf(
+  event: Pick<CalendarEvent<any>, "startEditable" | "resourceEditable" | "durationEditable">,
+  editing:
+    | Pick<Editing<any>, "startEditable" | "resourceEditable" | "durationEditable">
+    | undefined,
+): EditCapability {
+  const time = editing !== undefined && (event.startEditable ?? editing.startEditable);
+  const resource = editing !== undefined && (event.resourceEditable ?? editing.resourceEditable);
+  const duration = editing !== undefined && (event.durationEditable ?? editing.durationEditable);
+  return { time, resource, duration, move: time || resource, edit: time || resource || duration };
+}
+
+/**
+ * The edges of an occurrence that can be resized: only its actual endpoints, not one that the
+ * range clips, and none unless its duration is editable.
+ */
+export const resizableEdgesOf = (
+  placement: Pick<EventPlacement<any>, "startsBefore" | "endsAfter">,
+  duration: boolean,
+): Readonly<Record<ResizeEdge, boolean>> => ({
+  start: duration && !placement.startsBefore,
+  end: duration && !placement.endsAfter,
+});
+
 const EditingDataSchema = Schema.Struct({
   startEditable: Schema.optional(Schema.Boolean),
   resourceEditable: Schema.optional(Schema.Boolean),
