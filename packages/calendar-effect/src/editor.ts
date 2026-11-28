@@ -7,9 +7,11 @@ import {
   editFingerprintOf,
   editGestureLogic,
   evaluationKeyOf,
+  gestureStartOf,
   previewDescriptionOf,
   previewLayout,
   unchangedMessageOf,
+  unreportedRuleErrorOf,
   untargetedMessageOf,
   type CalendarEvent,
   type Disambiguation,
@@ -17,12 +19,12 @@ import {
   type EditEvaluation,
   type EditGesture,
   type EditGestureContext,
-  type EditOperation,
   type EditRule,
   type Editing,
   type EditingInput,
   type EventPlacement,
   type EventProposal,
+  type GestureRequest,
   type PreviewDescription,
   type ResizeEdge,
   type Timeline,
@@ -37,6 +39,9 @@ import { declared, isObject } from "./schema.js";
 // and the keyboard each work out an evaluation and hand it here. Nothing here touches the DOM.
 
 const editRules = ["constraint", "overlap", "allow"] as const;
+
+/** The edges of an event a resize can take. */
+export const resizeEdges = ["start", "end"] as const satisfies readonly ResizeEdge[];
 
 /**
  * What an editing timeline emits to the application, the events of calendar-react's
@@ -59,15 +64,14 @@ export type EditorEvent = typeof EditorEvents.Type;
 
 /**
  * The fields of one timeline's editing state, to spread into its Model: calendar-core's gesture
- * snapshot (`gesture` and `cancellation`), the rules already reported in this gesture, and what
- * the last gesture ended with.
+ * snapshot (`gesture`, with the rules it has reported, and `cancellation`), and what the last
+ * gesture ended with.
  */
 export const editorFields = {
   gesture: Schema.UndefinedOr(declared<EditGesture>(isObject)),
   cancellation: Schema.UndefinedOr(
     declared<NonNullable<EditGestureContext["cancellation"]>>(isObject),
   ),
-  reported: Schema.Array(Schema.Literals(editRules)),
   outcome: Schema.String,
 };
 export const EditorState = Schema.Struct(editorFields);
@@ -79,7 +83,6 @@ type GestureEvent = Parameters<typeof gestureStore.send>[0];
 
 export const idleEditor: EditorState = {
   ...gestureStore.getSnapshot().context,
-  reported: [],
   outcome: "",
 };
 
@@ -109,7 +112,8 @@ export interface EditorStep<S extends EditorState = EditorState> {
   readonly notices: readonly EditorEvent[];
 }
 
-const quiet = <S extends EditorState>(state: S): EditorStep<S> => ({ state, notices: [] });
+/** A step that emits nothing. */
+export const quiet = <S extends EditorState>(state: S): EditorStep<S> => ({ state, notices: [] });
 
 const decodedEditing = new WeakMap<object, Map<string, Editing<any> | TimelineInputError>>();
 
@@ -153,24 +157,6 @@ export const editingKeyOf = (editing: EditingInput<any> | undefined) =>
 export const eventOf = (context: Pick<EditorContext, "timeline">, eventId: string) =>
   context.timeline.events.find(({ id }) => id === eventId);
 
-/** What one event lets a gesture change under the editing given now. */
-export const capabilityOf = (
-  context: Pick<EditorContext, "editing">,
-  event: CalendarEvent<any> | undefined,
-) =>
-  event
-    ? editCapabilityOf(event, context.editing)
-    : { time: false, resource: false, duration: false, move: false, edit: false };
-
-export interface GestureRequest {
-  readonly input: "pointer" | "keyboard";
-  readonly operation: EditOperation;
-  readonly eventId: string;
-  readonly resourceId: string;
-  /** Required for a resize. */
-  readonly edge?: ResizeEdge | undefined;
-}
-
 /**
  * Starts a gesture, unless one is active or the event cannot be edited that way. Undefined when
  * it does not start.
@@ -180,23 +166,8 @@ export function beginGesture<S extends EditorState>(
   context: EditorContext,
   request: GestureRequest,
 ): S | undefined {
-  const event = eventOf(context, request.eventId);
-  if (state.gesture || !event) return undefined;
-  const capability = capabilityOf(context, event);
-  if (!(request.operation === "resize" ? capability.duration && request.edge : capability.move))
-    return undefined;
-  return transition(
-    { ...state, reported: [], outcome: "" },
-    {
-      type: "gestureStarted",
-      input: request.input,
-      operation: request.operation,
-      ...(request.edge && { edge: request.edge }),
-      eventId: request.eventId,
-      sourceResourceId: request.resourceId,
-      fingerprint: editFingerprintOf(event),
-    },
-  );
+  const start = gestureStartOf(context.timeline, context.editing, state.gesture, request);
+  return start && transition({ ...state, outcome: "" }, { type: "gestureStarted", ...start });
 }
 
 /** Points the gesture at another row. */
@@ -221,19 +192,10 @@ export function showEvaluation<S extends EditorState>(
   if (!gesture) return quiet(state);
   const notices: EditorEvent[] = [];
   let next = state;
-  if (
-    evaluation?.status === "rejected" &&
-    evaluation.error !== undefined &&
-    !state.reported.includes(evaluation.rule)
-  ) {
-    next = { ...next, reported: [...next.reported, evaluation.rule] };
-    notices.push(
-      EditorEvents.RuleFailed({
-        error: evaluation.error,
-        rule: evaluation.rule,
-        proposal: evaluation.proposal,
-      }),
-    );
+  const failed = unreportedRuleErrorOf(gesture, evaluation);
+  if (failed) {
+    next = transition(next, { type: "ruleReported", rule: failed.rule });
+    notices.push(EditorEvents.RuleFailed(failed));
   }
   const preview =
     evaluation === undefined || evaluation.status === "unavailable"

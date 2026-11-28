@@ -1,8 +1,9 @@
 import { UiSchema } from "@effect/ui";
 import type { Html } from "@effect/ui/html";
 import {
-  evaluateMove,
-  evaluateResize,
+  canStepGesture,
+  evaluateGesture,
+  gestureRowOf,
   occurrenceIdOf,
   resizableEdgesOf,
   type EditEvaluation,
@@ -14,8 +15,8 @@ import { Schema } from "effect";
 import {
   beginGesture,
   cancelGesture,
-  capabilityOf,
-  eventOf,
+  quiet,
+  resizeEdges,
   retargetGesture,
   settleGesture,
   showEvaluation,
@@ -31,8 +32,6 @@ import {
 // resizes its start or end edge, and Escape or leaving the event cancels. The event part turns
 // keys into actions; `applyKeyboardAction` turns them into the gesture through the editor.
 
-const edges = ["start", "end"] as const;
-
 /** What a key on a focused event asks for. */
 export const KeyboardAction = UiSchema.TaggedEnum({
   /** Picks the event up to move it. */
@@ -41,7 +40,7 @@ export const KeyboardAction = UiSchema.TaggedEnum({
   StartedResize: {
     eventId: Schema.String,
     resourceId: Schema.String,
-    edge: Schema.Literals(edges),
+    edge: Schema.Literals(resizeEdges),
     by: Schema.Number,
   },
   /** Moves the event, or the edge being resized, by whole snap steps. */
@@ -122,28 +121,15 @@ export const keyShortcutsOf = ({ placement, editor }: KeyboardTarget): string =>
     .join(" ");
 };
 
-/** What confirming the keyboard gesture now would do. */
-export function evaluateKeyboard(
+/** What confirming the keyboard gesture now would do: its steps, over the row it is on. */
+const evaluateKeyboard = (
   context: EditorContext,
   gesture: EditGesture,
-): EditEvaluation<any> {
-  const shift = gesture.steps !== 0 ? { steps: gesture.steps } : undefined;
-  return gesture.operation === "resize" && gesture.edge
-    ? evaluateResize(context.timeline, context.editing, {
-        eventId: gesture.eventId,
-        resourceId: gesture.sourceResourceId,
-        edge: gesture.edge,
-        ...(shift && { shift }),
-      })
-    : evaluateMove(context.timeline, context.editing, {
-        eventId: gesture.eventId,
-        sourceResourceId: gesture.sourceResourceId,
-        targetResourceId: gesture.targetResourceId,
-        ...(shift && { shift }),
-      });
-}
-
-const quiet = <S extends EditorState>(state: S): KeyboardStep<S> => ({ state, notices: [] });
+): EditEvaluation<any> | undefined =>
+  evaluateGesture(context.timeline, context.editing, gesture, {
+    shift: gesture.steps !== 0 ? { steps: gesture.steps } : undefined,
+    targetResourceId: gesture.targetResourceId,
+  });
 
 /** Shows the keyboard gesture again, as after the props changed. */
 export const reevaluateKeyboard = <S extends EditorState>(
@@ -191,28 +177,31 @@ export function applyKeyboardAction<S extends EditorState>(
         : quiet(state);
     }
     case "Stepped": {
-      if (gesture?.input !== "keyboard") return quiet(state);
-      const capability = capabilityOf(context, eventOf(context, gesture.eventId));
-      if (!(gesture.operation === "resize" ? capability.duration : capability.time))
+      if (
+        gesture?.input !== "keyboard" ||
+        !canStepGesture(context.timeline, context.editing, gesture)
+      )
         return quiet(state);
       return reevaluateKeyboard(stepGesture(state, action.by), context);
     }
     case "MovedRow": {
-      // A resize keeps its row.
-      if (gesture?.input !== "keyboard" || gesture.operation !== "move") return quiet(state);
-      if (!capabilityOf(context, eventOf(context, gesture.eventId)).resource) return quiet(state);
-      const ids = context.rows.flatMap((row) => (row.kind === "resource" ? [row.resource.id] : []));
-      const at = ids.indexOf(gesture.targetResourceId);
-      const next = ids[at + action.by];
-      if (at < 0 || next === undefined) return quiet(state);
-      return reevaluateKeyboard(retargetGesture(state, next), context);
+      if (gesture?.input !== "keyboard") return quiet(state);
+      const next = gestureRowOf(
+        context.timeline,
+        context.editing,
+        context.rows,
+        gesture,
+        action.by,
+      );
+      return next ? reevaluateKeyboard(retargetGesture(state, next), context) : quiet(state);
     }
     case "Confirmed": {
       if (gesture?.input !== "keyboard") return quiet(state);
       // Worked out again, so that what is proposed is what the events are now.
       const evaluation = evaluateKeyboard(context, gesture);
       const step = settleGesture(state, context, evaluation);
-      return step.notices.some(({ _tag }) => _tag === "Proposed") && evaluation.status === "allowed"
+      return step.notices.some(({ _tag }) => _tag === "Proposed") &&
+        evaluation?.status === "allowed"
         ? { ...step, focus: occurrenceIdOf(gesture.eventId, evaluation.proposal.targetResourceId) }
         : step;
     }

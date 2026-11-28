@@ -38,6 +38,7 @@ import {
   editorFields,
   editorViewOf,
   idleEditor,
+  quiet,
   reconcileGesture,
   type EditorContext,
   type EditorEvent,
@@ -381,7 +382,7 @@ export const ResourceTimeline = Html.component({
       return applied(
         $,
         !current || !context
-          ? { state, notices: [] }
+          ? quiet(state)
           : state.gesture?.input === "keyboard"
             ? reevaluateKeyboard(state, context)
             : reevaluatePointer(state, context),

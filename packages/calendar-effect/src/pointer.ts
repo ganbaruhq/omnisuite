@@ -7,16 +7,13 @@ import {
   PointerActivationConstraints,
   PointerSensor,
 } from "@dnd-kit/dom";
-import {
-  evaluateMove,
-  evaluateResize,
-  type EditEvaluation,
-  type EditGesture,
-} from "@omnisuite/calendar-core";
+import { evaluateGesture, type EditEvaluation, type EditGesture } from "@omnisuite/calendar-core";
 import { Effect, Queue, Schema, Stream } from "effect";
 import {
   beginGesture,
   cancelGesture,
+  quiet,
+  resizeEdges,
   retargetGesture,
   settleGesture,
   showEvaluation,
@@ -30,14 +27,12 @@ import {
 // root measures the DOM and reports facts in slot units; `applyPointerFact` turns them into the
 // gesture through the editor, with no DOM.
 
-const edges = ["start", "end"] as const;
-
 /** What the pointer did, measured: `slot` is its position along the time axis, in slots. */
 export const PointerFact = UiSchema.TaggedEnum({
   /** A move was picked up, or a resize handle pressed, on an occurrence. */
   Pressed: {
     operation: Schema.Literals(["move", "resize"]),
-    edge: Schema.optional(Schema.Literals(edges)),
+    edge: Schema.optional(Schema.Literals(resizeEdges)),
     eventId: Schema.String,
     resourceId: Schema.String,
     slot: Schema.Number,
@@ -63,32 +58,19 @@ export interface PointerState extends EditorState {
   readonly pointer: PointerPosition | null;
 }
 
-/** What releasing the pointer at `pointer` would do; undefined while it is over no resource. */
-export function evaluatePointer(
+/**
+ * What releasing the pointer at `pointer` would do; undefined while a move is over no resource.
+ * An edge follows the pointer along the time axis wherever the pointer is vertically.
+ */
+const evaluatePointer = (
   context: EditorContext,
   gesture: EditGesture,
   pointer: PointerPosition,
-): EditEvaluation<any> | undefined {
-  const shift = { slots: pointer.slot - pointer.startSlot };
-  // An edge follows the pointer along the time axis wherever the pointer is vertically.
-  if (gesture.operation === "resize")
-    return gesture.edge
-      ? evaluateResize(context.timeline, context.editing, {
-          eventId: gesture.eventId,
-          resourceId: gesture.sourceResourceId,
-          edge: gesture.edge,
-          shift,
-        })
-      : undefined;
-  return pointer.targetResourceId === null
-    ? undefined
-    : evaluateMove(context.timeline, context.editing, {
-        eventId: gesture.eventId,
-        sourceResourceId: gesture.sourceResourceId,
-        targetResourceId: pointer.targetResourceId,
-        shift,
-      });
-}
+): EditEvaluation<any> | undefined =>
+  evaluateGesture(context.timeline, context.editing, gesture, {
+    shift: { slots: pointer.slot - pointer.startSlot },
+    targetResourceId: pointer.targetResourceId ?? undefined,
+  });
 
 const showAt = <S extends PointerState>(
   state: S,
@@ -96,7 +78,7 @@ const showAt = <S extends PointerState>(
   pointer: PointerPosition,
 ): EditorStep<S> => {
   let next: S = { ...state, pointer };
-  if (!next.gesture) return { state: next, notices: [] };
+  if (!next.gesture) return quiet(next);
   if (next.gesture.operation === "move" && pointer.targetResourceId !== null)
     next = retargetGesture(next, pointer.targetResourceId);
   return showEvaluation(next, evaluatePointer(context, next.gesture!, pointer));
@@ -109,7 +91,7 @@ export const reevaluatePointer = <S extends PointerState>(
 ): EditorStep<S> =>
   state.gesture?.input === "pointer" && state.pointer
     ? showAt(state, context, state.pointer)
-    : { state, notices: [] };
+    : quiet(state);
 
 /** The next state after a fact the pointer mount reported. */
 export function applyPointerFact<S extends PointerState>(
@@ -117,7 +99,7 @@ export function applyPointerFact<S extends PointerState>(
   context: EditorContext,
   fact: PointerFact,
 ): EditorStep<S> {
-  const ignored = { state, notices: [] };
+  const ignored = quiet(state);
   switch (fact._tag) {
     case "Pressed": {
       const begun = beginGesture(state, context, {
@@ -146,7 +128,7 @@ export function applyPointerFact<S extends PointerState>(
       const { gesture, pointer } = state;
       if (gesture?.input !== "pointer") return ignored;
       if (fact.canceled || !pointer)
-        return { state: { ...cancelGesture(state, "escape"), pointer: null }, notices: [] };
+        return quiet({ ...cancelGesture(state, "escape"), pointer: null });
       const settled = settleGesture(state, context, evaluatePointer(context, gesture, pointer));
       return { ...settled, state: { ...settled.state, pointer: null } };
     }
