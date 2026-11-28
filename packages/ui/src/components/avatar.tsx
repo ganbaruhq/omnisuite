@@ -70,8 +70,15 @@ function AvatarFallback({
           aria-hidden="true"
           className="size-full overflow-hidden rounded-full"
         >
-          <ellipse cx="40" cy="78" rx="32" ry="24" fill="white" fillOpacity="0.72" />
-          <circle cx="40" cy="32" r="16" fill="white" fillOpacity="0.9" />
+          <ellipse
+            cx="40"
+            cy="78"
+            rx="32"
+            ry="24"
+            fill="var(--color-avatar-placeholder)"
+            fillOpacity="0.72"
+          />
+          <circle cx="40" cy="32" r="16" fill="var(--color-avatar-placeholder)" fillOpacity="0.9" />
         </svg>
       )}
     </AvatarPrimitive.Fallback>
