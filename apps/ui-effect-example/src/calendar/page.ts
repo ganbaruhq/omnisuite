@@ -1,6 +1,6 @@
 import type { Html } from "@effect/ui/html";
 import { FrontDesk } from "./front-desk";
-import { sampleTimeline } from "./sample-timeline";
+import { sampleEditing, sampleTimeline } from "./sample-timeline";
 import { createSampleFetch, createWindowQueries } from "./window-queries";
 
 /**
@@ -12,6 +12,11 @@ const queries = createWindowQueries(
   createSampleFetch(sampleTimeline.events, { failUntilRetry: "2026-11-02T00:00" }),
 );
 
-/** The read-only resource timeline, loading its events window by window. */
+/**
+ * The resource timeline, loading its events window by window. Its stays move and resize by the
+ * hour, and the page accepts every change the hostel's rule allows.
+ */
 export const CalendarPage = <Msg>(h: Html.H<Msg>) =>
-  h.div.class("p-4 sm:p-8").children(FrontDesk(h, { props: { input: sampleTimeline, queries } }));
+  h.div
+    .class("p-4 sm:p-8")
+    .children(FrontDesk(h, { props: { input: sampleTimeline, queries, editing: sampleEditing } }));

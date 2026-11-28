@@ -2,6 +2,8 @@ import { Subscription, UiSchema } from "@effect/ui";
 import { Html } from "@effect/ui/html";
 import {
   timelineViewResult,
+  type EditingInput,
+  type EventProposal,
   type TimelineInputIssue,
   type TimelinePreset,
   type TimelineRow,
@@ -24,11 +26,12 @@ import {
 import type { SampleBoard, StayKind } from "./sample-timeline";
 import type { WindowQueries } from "./window-queries";
 
-// The React example's read-only "Front desk" board, drawn with @omnisuite/calendar-effect: the
-// same toolbar, rows, axis and events, with the same classes. With `queries` it loads events
-// window by window as the viewer moves through time.
+// The React example's "Front desk" board, drawn with @omnisuite/calendar-effect: the same
+// toolbar, rows, axis and events, with the same classes. With `queries` it loads events window by
+// window as the viewer moves through time, and with `editing` its events move and resize.
 
 export type SampleEvent = SampleBoard["events"][number];
+export type SampleProposal = EventProposal<{ kind: StayKind }>;
 
 const slotWidth: Record<TimelinePreset, string> = {
   hour: "min-w-[calc(var(--timeline-span)*4.5rem)] flex-1",
@@ -39,6 +42,8 @@ const slotWidth: Record<TimelinePreset, string> = {
 const rowWidth = "flex w-max min-w-full";
 const resourceColumn = "sticky start-0 z-10 w-52 shrink-0 border-e bg-card";
 const groupClass = "flex items-center gap-1";
+// A strip along an event's edge; the calendar draws it only where the edge can be resized.
+const resizeHandle = "w-2 shrink-0 cursor-ew-resize hover:bg-primary/30";
 
 const declared = <T>(is: (u: unknown) => boolean) => Schema.declare((u): u is T => is(u));
 
@@ -92,6 +97,21 @@ const watchQueries = (queries: WindowQueries<SampleEvent>) =>
     ),
   );
 
+/**
+ * The application's answer to a proposal: the calendar changes nothing itself, so the board
+ * accepts a proposal by updating the event it loaded, which publishes new events to the page.
+ */
+const proposalHandlerOf =
+  (props: {
+    readonly queries?: WindowQueries<SampleEvent> | undefined;
+    readonly onProposal?: ((proposal: SampleProposal) => void) | undefined;
+    readonly acceptProposals?: boolean | undefined;
+  }) =>
+  (proposal: SampleProposal) => {
+    props.onProposal?.(proposal);
+    if (props.acceptProposals !== false) props.queries?.update(proposal.after);
+  };
+
 const problems = <Msg>(h: Html.H<Msg>, issues: readonly TimelineInputIssue[]) =>
   h.div
     .attr("role", "alert")
@@ -113,9 +133,11 @@ const Board = <Msg>(
     readonly preset: TimelinePreset;
     readonly input: SampleBoard;
     readonly queries: WindowQueries<SampleEvent> | undefined;
+    readonly editing: EditingInput<{ kind: StayKind }> | undefined;
+    readonly onProposal: ((proposal: SampleProposal) => void) | undefined;
   },
 ) => {
-  const { view, preset, input, queries } = options;
+  const { view, preset, input, queries, editing, onProposal } = options;
   const loaded = queries?.getSnapshot();
   const axisWidth = slotWidth[preset];
   return ResourceTimeline(h, {
@@ -124,6 +146,8 @@ const Board = <Msg>(
       resources: input.resources,
       events: loaded ? loaded.events : input.events,
       loading: queries && loaded && { coverage: loaded.coverage, onLoadWindow: queries.observe },
+      ...(editing && { editing }),
+      ...(onProposal && { onProposal }),
     },
     view: (timeline) => {
       if (timeline.status === "invalid") return problems(h, timeline.error.issues);
@@ -184,6 +208,7 @@ const Board = <Msg>(
                         .class(
                           cn(
                             "my-2 flex min-w-0 items-center overflow-hidden border-s-4 px-2 text-xs",
+                            "data-movable:cursor-grab data-editable:focus-visible:outline-2 data-editable:focus-visible:outline-ring",
                             kind === "maintenance"
                               ? "border-destructive bg-destructive/10"
                               : "border-primary bg-primary/10",
@@ -192,8 +217,30 @@ const Board = <Msg>(
                         ),
                       placement,
                     )
-                    .children(h.span.class("truncate font-medium").children(event.title));
+                    .children(
+                      timeline.resizeHandle(
+                        h.div.key("start").class(resizeHandle),
+                        placement,
+                        "start",
+                      ),
+                      h.span.key("title").class("truncate font-medium").children(event.title),
+                      timeline.resizeHandle(h.div.key("end").class(resizeHandle), placement, "end"),
+                    );
                 }),
+                timeline
+                  .preview(
+                    h.div
+                      .key("preview")
+                      .class(
+                        "my-2 flex min-w-0 items-center overflow-hidden border-2 border-dashed border-primary bg-primary/20 px-2 text-xs data-not-allowed:cursor-not-allowed data-not-allowed:border-destructive data-not-allowed:bg-destructive/20",
+                      ),
+                    row,
+                  )
+                  ?.children(
+                    h.span
+                      .class("truncate font-medium")
+                      .children(timeline.editor?.preview?.placement?.event.title ?? ""),
+                  ),
               ),
           );
       };
@@ -228,6 +275,7 @@ const Board = <Msg>(
         );
 
       return h.div.class("px-0 pb-6").children(
+        timeline.editStatus(h.div.class("sr-only")),
         timeline.root(h.div).children(
           timeline
             .viewport(
@@ -270,7 +318,7 @@ const Board = <Msg>(
 };
 
 /**
- * A read-only resource timeline with a toolbar for the scale and the time zone, and, with
+ * A resource timeline, editable with `editing`, with a toolbar for the scale and the time zone, and, with
  * `queries`, for moving to the window before or after.
  */
 export const FrontDesk = Html.component({
@@ -280,6 +328,19 @@ export const FrontDesk = Html.component({
     input: declared<SampleBoard>((u) => typeof u === "object" && u !== null),
     queries: Schema.optional(declared<WindowQueries<SampleEvent>>((u) => typeof u === "object")),
     anchor: Schema.optional(Schema.String),
+    /** Lets the events move and resize. Without it the board is read-only. */
+    editing: Schema.optional(
+      declared<EditingInput<{ kind: StayKind }>>((u) => typeof u === "object" && u !== null),
+    ),
+    /** Called with each proposal the calendar makes, before the board decides on it. */
+    onProposal: Schema.optional(
+      declared<(proposal: SampleProposal) => void>((u) => typeof u === "function"),
+    ),
+    /**
+     * Whether the board accepts proposals, by updating the event in `queries`. Defaults to true;
+     * without `queries` there is nothing to update, so proposals are only reported.
+     */
+    acceptProposals: Schema.optional(Schema.Boolean),
   }),
   model: Schema.Struct({
     anchor: Schema.String,
@@ -374,6 +435,8 @@ export const FrontDesk = Html.component({
               preset: model.preset,
               input: props.input,
               queries: props.queries,
+              editing: props.editing,
+              onProposal: props.editing && proposalHandlerOf(props),
             })
           : problems(h, view.failure.issues),
       );
