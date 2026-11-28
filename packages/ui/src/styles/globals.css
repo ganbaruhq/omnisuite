@@ -3,11 +3,25 @@
 @import "shadcn/tailwind.css";
 @import "@fontsource-variable/inter";
 @import "./typeset.css";
+@import "react-querybuilder/dist/query-builder.css";
 
 @custom-variant dark (&:is(.dark *));
 @source "../**/*.{js,ts,tsx}";
 
 @theme {
+  --color-avatar-gray: #ebebeb;
+  --color-avatar-black: #171717;
+  --color-avatar-yellow: #ffecc0;
+  --color-avatar-yellow-foreground: #624c18;
+  --color-avatar-blue: #c0d5ff;
+  --color-avatar-blue-foreground: #122368;
+  --color-avatar-sky: #c0eaff;
+  --color-avatar-sky-foreground: #124b68;
+  --color-avatar-purple: #cac0ff;
+  --color-avatar-purple-foreground: #351a75;
+  --color-avatar-red: #ffc0c5;
+  --color-avatar-red-foreground: #681219;
+
   --shadow-tooltip: 0 12px 24px 0 #0e121b0f, 0 1px 2px 0 #0e121b08;
   /* Untitled UI skeuomorphic edge, for FancyButton. */
   --shadow-skeuomorphic:
@@ -174,6 +188,9 @@
     /* Set per element (not inherited from body) so the em scales with each text size. */
     text-underline-offset: 0.2em;
   }
+  html {
+    overscroll-behavior: none;
+  }
   body {
     position: relative;
     @apply bg-background tracking-[-0.01em] text-foreground antialiased;
@@ -181,6 +198,11 @@
 }
 
 @layer utilities {
+  .content-scrollbar,
+  .sidebar-scrollbar {
+    overscroll-behavior: none;
+  }
+
   .content-scrollbar {
     scrollbar-width: thin;
     scrollbar-gutter: stable;
@@ -206,6 +228,21 @@
 }
 
 @layer components {
+  [data-slot="query-builder"] .queryBuilder {
+    --rqb-spacing: calc(var(--spacing) * 2);
+    --rqb-background-color: color-mix(in oklab, var(--muted) 45%, transparent);
+    --rqb-border-color: var(--border);
+    --rqb-border-radius: var(--radius-lg);
+    --rqb-branch-color: var(--border);
+    min-width: 0;
+    color: var(--foreground);
+  }
+
+  [data-slot="query-builder"] .ruleGroup,
+  [data-slot="query-builder"] .rule {
+    min-width: 0;
+  }
+
   .typeset-default {
     --typeset-font-body: var(--font-sans);
     --typeset-font-heading: var(--font-sans);

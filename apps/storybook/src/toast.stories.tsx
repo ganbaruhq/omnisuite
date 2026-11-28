@@ -1,6 +1,7 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
 import { Button } from "@omnisuite/ui/components/button";
 import { Toaster, toast } from "@omnisuite/ui/components/toast";
+import { IconCube } from "@tabler/icons-react";
 
 const meta = {
   title: "Components/Toast",
@@ -23,10 +24,41 @@ export const Default: Story = {
     <Button
       variant="outline"
       onClick={() =>
-        toast.add({ title: "Collection created", description: "Q4 pipeline is syncing now." })
+        toast.add({
+          title: "A new update is ready",
+          description: "Explore the latest workspace tools and faster exports.",
+          data: { variant: "icon", icon: <IconCube /> },
+          actionProps: { children: "View update" },
+        })
       }
     >
       Show toast
+    </Button>
+  ),
+};
+
+export const Avatar: Story = {
+  render: () => (
+    <Button
+      variant="outline"
+      onClick={() =>
+        toast.add({
+          title: "Alex Morgan",
+          description: "The collection is ready for your review. Let me know what you think!",
+          data: {
+            variant: "avatar",
+            avatar: {
+              src: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=80&h=80&fit=crop&crop=faces",
+              alt: "Alex Morgan",
+              fallback: "AM",
+            },
+            date: "2 mins ago",
+          },
+          actionProps: { children: "View collection" },
+        })
+      }
+    >
+      Show avatar toast
     </Button>
   ),
 };
