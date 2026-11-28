@@ -1,5 +1,6 @@
+import { statusDotVariants } from "@omnisuite/ui/lib/recipes/status-dot";
 import type * as React from "react";
-import { cva, type VariantProps } from "class-variance-authority";
+import type { VariantProps } from "class-variance-authority";
 import { cn } from "cn";
 
 /**
@@ -11,25 +12,6 @@ import { cn } from "cn";
  * Decorative by default, since a text label normally sits next to it. When the
  * dot stands alone, pass `aria-label` and it is announced as an image.
  */
-const statusDotVariants = cva("inline-block size-1.5 shrink-0 rounded-full", {
-  variants: {
-    status: {
-      success: "bg-success",
-      warning: "bg-warning",
-      destructive: "bg-destructive",
-      info: "bg-info",
-      neutral: "bg-muted-foreground/50",
-    },
-    pulse: {
-      true: "animate-pulse motion-reduce:animate-none",
-      false: "",
-    },
-  },
-  defaultVariants: {
-    status: "neutral",
-    pulse: false,
-  },
-});
 
 type StatusDotStatus = NonNullable<VariantProps<typeof statusDotVariants>["status"]>;
 
