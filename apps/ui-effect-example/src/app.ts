@@ -129,6 +129,7 @@ const Workspace = Html.component({
     const { fields } = CollectionValidation.validate(model.form);
 
     const nameField = Field(h, {
+      key: "name",
       props: fieldValidationProps(fields.name),
       view: (field) =>
         field.root(h.div).children(
@@ -146,7 +147,8 @@ const Workspace = Html.component({
     });
 
     const descriptionField = Field(h, {
-      props: fieldValidationProps(fields.description),
+      key: "description",
+      props: { ...fieldValidationProps(fields.description), described: true },
       view: (field) =>
         field.root(h.div).children(
           field.label(h.label).children("Description"),
@@ -162,6 +164,7 @@ const Workspace = Html.component({
     });
 
     const visibilityField = Field(h, {
+      key: "visibility",
       view: (field) =>
         field.root(h.div).children(
           Select(h, {
@@ -192,6 +195,8 @@ const Workspace = Html.component({
     });
 
     const commentsField = Field(h, {
+      key: "comments",
+      props: { described: true },
       view: (field) =>
         field.root(h.div, "horizontal").children(
           FieldContent(h).children(
@@ -207,6 +212,7 @@ const Workspace = Html.component({
     });
 
     const notifyField = Field(h, {
+      key: "notify",
       view: (field) =>
         field.root(h.div, "horizontal").children(
           Checkbox(h, {
@@ -259,7 +265,12 @@ const Workspace = Html.component({
               },
               view: (tooltip) =>
                 h.div.children(
-                  tooltip.trigger(dialog.trigger(Button(h))).children("New collection"),
+                  // The tooltip re-runs this closure on its own while the dialog's parts stay
+                  // as they were, so a generated trigger key would drift from the one the
+                  // dialog remembers. A trigger with an `id` keeps it.
+                  tooltip
+                    .trigger(dialog.trigger(Button(h).attr("id", "new-collection")))
+                    .children("New collection"),
                   tooltip.content(h, ["Group pages under one name"]),
                 ),
             }),
