@@ -1,3 +1,17 @@
+import {
+  pageClasses,
+  pageFullBleedClasses,
+  pageHeaderClasses,
+  pageHeadingClasses,
+  pageTitleClasses,
+  pageDescriptionClasses,
+  pageActionsClasses,
+  pageSectionClasses,
+  pageSectionTitleClasses,
+  pageBodyClasses,
+  pageAsideClasses,
+  pageAsideContentClasses,
+} from "@omnisuite/ui/lib/recipes/page";
 import * as React from "react";
 import { cn } from "cn";
 import { Text } from "./text";
@@ -17,18 +31,7 @@ import { Text } from "./text";
  * Override the width per page with a class, e.g. `[--page-max-width:50rem]`.
  */
 function Page({ className, ...props }: React.ComponentProps<"div">) {
-  return (
-    <div
-      data-slot="page"
-      className={cn(
-        "grid grow auto-rows-min gap-y-7 py-8 [--page-bleed-gutter:var(--page-padding-x)] [--page-max-width:1400px] [--page-padding-x:--spacing(4)] md:[--page-padding-x:--spacing(8)]",
-        "grid-cols-[minmax(var(--page-padding-x),1fr)_minmax(0,var(--page-max-width))_minmax(var(--page-padding-x),1fr)]",
-        "*:col-start-2 *:data-full-bleed:col-span-full",
-        className,
-      )}
-      {...props}
-    />
-  );
+  return <div data-slot="page" className={cn(...pageClasses, className)} {...props} />;
 }
 
 /** Edge-to-edge band inside a `Page`; its content is padded to the page gutter. */
@@ -37,7 +40,7 @@ function PageFullBleed({ className, ...props }: React.ComponentProps<"div">) {
     <div
       data-slot="page-full-bleed"
       data-full-bleed=""
-      className={cn("px-(--page-bleed-gutter)", className)}
+      className={cn(...pageFullBleedClasses, className)}
       {...props}
     />
   );
@@ -45,21 +48,13 @@ function PageFullBleed({ className, ...props }: React.ComponentProps<"div">) {
 
 function PageHeader({ className, ...props }: React.ComponentProps<"header">) {
   return (
-    <header
-      data-slot="page-header"
-      className={cn("flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between", className)}
-      {...props}
-    />
+    <header data-slot="page-header" className={cn(...pageHeaderClasses, className)} {...props} />
   );
 }
 
 function PageHeading({ className, ...props }: React.ComponentProps<"div">) {
   return (
-    <div
-      data-slot="page-heading"
-      className={cn("flex min-w-0 flex-col gap-1", className)}
-      {...props}
-    />
+    <div data-slot="page-heading" className={cn(...pageHeadingClasses, className)} {...props} />
   );
 }
 
@@ -74,10 +69,7 @@ function PageTitle({ className, ...props }: PageTextProps) {
       variant="heading"
       size="lg"
       data-slot="page-title"
-      className={cn(
-        "flex items-center gap-2 tracking-tight [&_svg:not([class*='size-'])]:size-5",
-        className,
-      )}
+      className={cn(...pageTitleClasses, className)}
       {...props}
     />
   );
@@ -88,7 +80,7 @@ function PageDescription({ className, ...props }: PageTextProps) {
     <Text
       variant="secondary"
       data-slot="page-description"
-      className={cn("max-w-2xl text-pretty", className)}
+      className={cn(...pageDescriptionClasses, className)}
       {...props}
     />
   );
@@ -96,21 +88,13 @@ function PageDescription({ className, ...props }: PageTextProps) {
 
 function PageActions({ className, ...props }: React.ComponentProps<"div">) {
   return (
-    <div
-      data-slot="page-actions"
-      className={cn("flex shrink-0 flex-wrap items-center gap-2", className)}
-      {...props}
-    />
+    <div data-slot="page-actions" className={cn(...pageActionsClasses, className)} {...props} />
   );
 }
 
 function PageSection({ className, ...props }: React.ComponentProps<"section">) {
   return (
-    <section
-      data-slot="page-section"
-      className={cn("grid auto-rows-min gap-4", className)}
-      {...props}
-    />
+    <section data-slot="page-section" className={cn(...pageSectionClasses, className)} {...props} />
   );
 }
 
@@ -120,7 +104,7 @@ function PageSectionTitle({ className, ...props }: PageTextProps) {
       as="h2"
       variant="heading"
       data-slot="page-section-title"
-      className={cn("col-span-full", className)}
+      className={cn(...pageSectionTitleClasses, className)}
       {...props}
     />
   );
@@ -140,25 +124,13 @@ function PageSectionTitle({ className, ...props }: PageTextProps) {
  * below a sticky app header.
  */
 function PageBody({ className, ...props }: React.ComponentProps<"div">) {
-  return (
-    <div
-      data-slot="page-body"
-      className={cn("@container/page-body flex min-w-0 grow", className)}
-      {...props}
-    />
-  );
+  return <div data-slot="page-body" className={cn(...pageBodyClasses, className)} {...props} />;
 }
 
 function PageAside({ className, children, ...props }: React.ComponentProps<"aside">) {
   return (
-    <aside
-      data-slot="page-aside"
-      className={cn("hidden w-100 shrink-0 border-l @5xl/page-body:block", className)}
-      {...props}
-    >
-      <div className="sticky top-(--page-header-height,0px) flex flex-col gap-4 p-6">
-        {children}
-      </div>
+    <aside data-slot="page-aside" className={cn(...pageAsideClasses, className)} {...props}>
+      <div className={cn(...pageAsideContentClasses)}>{children}</div>
     </aside>
   );
 }
