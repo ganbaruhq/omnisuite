@@ -1,10 +1,12 @@
+import { removeTag } from "./story-interactions";
+import { AVATAR_IMAGE } from "./story-data";
 import type { Meta, StoryObj } from "@storybook/react-vite";
 import { useState } from "react";
 import { StatusDot } from "@omnisuite/ui/components/status-dot";
 import { Tag, TagAvatar, TagCount, TagGroup } from "@omnisuite/ui/components/tag";
 
 const meta = {
-  title: "Components/Tag",
+  title: "React/Components/Tag",
   component: Tag,
   args: { children: "Label" },
 } satisfies Meta<typeof Tag>;
@@ -32,7 +34,7 @@ export const Sizes: Story = {
             Active
           </Tag>
           <Tag>
-            <TagAvatar src="https://i.pravatar.cc/64?img=47" />
+            <TagAvatar src={AVATAR_IMAGE} />
             Olivia Rhye
           </Tag>
           <Tag>
@@ -76,7 +78,7 @@ function RemovableTags({ selectable }: { selectable?: boolean }) {
   );
 }
 
-export const Removable: Story = { render: () => <RemovableTags /> };
+export const Removable: Story = { play: removeTag, render: () => <RemovableTags /> };
 
 export const Selectable: Story = {
   render: () => (

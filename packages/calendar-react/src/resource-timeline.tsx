@@ -1,6 +1,13 @@
 import {
   collapsedIdsOf,
   decodeTimelineResult,
+  disclosureDescriptionOf,
+  disclosureLabelOf,
+  expansionToggleOf,
+  laneLabelOf,
+  placementBoxOf,
+  resizableEdgesOf,
+  slotBoxOf,
   resourceHierarchyLogic,
   visibleTimelineRows,
   type EventPlacement,
@@ -155,11 +162,9 @@ export function useResourceTimeline<TResourceData = unknown, TEventData = unknow
   );
   const toggleExpanded = useCallback(
     (id: string) => {
-      if (
-        result._tag === "Success" &&
-        result.success.rows.some((row) => row.resource.id === id && row.hasChildren)
-      )
-        hierarchy.trigger.setExpanded({ id, expanded: collapsedIds.has(id) });
+      if (result._tag !== "Success") return;
+      const toggle = expansionToggleOf(result.success.rows, collapsedIds, id);
+      if (toggle) hierarchy.trigger.setExpanded(toggle);
     },
     [result, hierarchy, collapsedIds],
   );
@@ -214,8 +219,7 @@ function useTimelineContext(part: string) {
   return timeline;
 }
 
-/** A length along the time axis as a share of the whole range. */
-const percent = (timeline: Timeline, slots: number) => `${(slots / timeline.span) * 100}%`;
+const percent = (value: number) => `${value}%`;
 
 /** Every part that renders one element takes `render` to swap it; see {@link Render}. */
 type Hosted<TElement extends "div" | "button" = "div"> = ComponentProps<TElement> & {
@@ -317,8 +321,7 @@ function AxisSlot({
       style={{
         position: "absolute",
         insetBlock: 0,
-        insetInlineStart: percent(timeline, slot.offset),
-        width: percent(timeline, slot.span),
+        ...slotStyle(timeline, slot),
         ...style,
       }}
     />
@@ -389,8 +392,8 @@ function Disclosure({
   return renderHost(
     "button",
     {
-      "aria-label": `${expanded ? "Collapse" : "Expand"} ${row.resource.title}`,
-      "aria-description": `${row.kind === "group" ? "Group" : "Resource"}, level ${row.depth + 1}`,
+      "aria-label": disclosureLabelOf(row, expanded),
+      "aria-description": disclosureDescriptionOf(row),
       ...props,
       type: "button",
       "data-timeline-disclosure": "",
@@ -426,7 +429,7 @@ function Lane({ style, ref, render, ...props }: Hosted) {
     {
       ref: useMergedRef(ref, registered),
       role: "list",
-      "aria-label": row ? `${row.resource.title} events` : undefined,
+      "aria-label": row ? laneLabelOf(row) : undefined,
       "data-timeline-lane": "",
       ...props,
       style: {
@@ -441,13 +444,20 @@ function Lane({ style, ref, render, ...props }: Hosted) {
 
 /** The box of an occurrence or a preview within its row. */
 function placementStyle(timeline: Timeline, laneCount: number, placement: EventPlacement<any>) {
+  const box = placementBoxOf(timeline, laneCount, placement);
   return {
     position: "absolute",
-    insetInlineStart: percent(timeline, placement.offset),
-    width: percent(timeline, placement.span),
-    insetBlockStart: `${(placement.lane / laneCount) * 100}%`,
-    insetBlockEnd: `${((laneCount - 1 - placement.lane) / laneCount) * 100}%`,
+    insetInlineStart: percent(box.inlineStart),
+    width: percent(box.inlineSize),
+    insetBlockStart: percent(box.blockStart),
+    insetBlockEnd: percent(box.blockEnd),
   } satisfies CSSProperties;
+}
+
+/** The extent of a slot along the time axis. */
+function slotStyle(timeline: Timeline, slot: TimelineSlot) {
+  const box = slotBoxOf(timeline, slot);
+  return { insetInlineStart: percent(box.inlineStart), width: percent(box.inlineSize) };
 }
 
 type EventProps = Hosted & { placement: EventPlacement<any> };
@@ -519,10 +529,7 @@ function EditableEvent({
   const movable = editor.canMove(placement.event);
   const resizable = editor.canResize(placement.event);
   // Only an actual endpoint of the event can be resized, not one that the range clips.
-  const edges = {
-    start: resizable && !placement.startsBefore,
-    end: resizable && !placement.endsAfter,
-  };
+  const edges = resizableEdgesOf(placement, resizable);
   const { ref: draggableRef } = useDraggable({
     id: occurrenceId,
     data: { eventId: placement.event.id, resourceId: placement.resourceId },
@@ -640,8 +647,8 @@ function ResizeHandle({
   const editor = useContext(EditorContext);
   if (
     !placement ||
-    !editor?.canResize(placement.event) ||
-    (edge === "start" ? placement.startsBefore : placement.endsAfter)
+    !editor ||
+    !resizableEdgesOf(placement, editor.canResize(placement.event))[edge]
   )
     return null;
   return (

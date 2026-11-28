@@ -1,9 +1,19 @@
 import { useState } from "react";
 import { HousekeepingExample } from "./housekeeping-example";
-import { createResourceQueries, createSampleResourceFetch } from "./resource-queries";
+import {
+  createResourceQueries,
+  createSampleResourceFetch,
+} from "@omnisuite/calendar-sample-data/resource-queries";
 import { ResourceTimelineExample } from "./resource-timeline-example";
-import { lazyServerEvents, lazyServerResources, sampleEditing } from "./sample-timeline";
-import { createSampleFetch, createWindowQueries } from "./window-queries";
+import {
+  lazyServerEvents,
+  lazyServerResources,
+  sampleEditing,
+} from "@omnisuite/calendar-sample-data/sample-timeline";
+import {
+  createSampleFetch,
+  createWindowQueries,
+} from "@omnisuite/calendar-sample-data/window-queries";
 
 /**
  * The application's side of one calendar: queries for event windows, resource pages and lazy

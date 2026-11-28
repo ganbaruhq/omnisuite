@@ -71,8 +71,8 @@
     "typescript": "7.0.2"
   },
   "peerDependencies": {
-    "@effect/ui": "*",
-    "@effect/ui-kit": "*",
+    "@effect/ui": "^0.0.0",
+    "@effect/ui-kit": "^0.0.0",
     "effect": "^4.1.6",
     "react": "^19.0.0",
     "react-dom": "^19.0.0"

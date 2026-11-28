@@ -8,10 +8,22 @@ Shared packages published to npm under the `@omnisuite` scope.
 | `@omnisuite/calendar-core`  | Headless calendar and resource timeline model (Effect, Temporal). |
 | `@omnisuite/calendar-react` | React bindings: the resource timeline, hosts and loading hooks.   |
 
-`packages/` holds what is published; `apps/` holds private tooling:
+`packages/` holds these published packages and two private workspace packages, which are never
+published (`"private": true`):
 
-- `apps/storybook`: the `@omnisuite/ui` stories.
+- `packages/calendar-effect` (`@omnisuite/calendar-effect`): Effect UI bindings for
+  `@omnisuite/calendar-core`, the resource timeline drawn with Effect UI. Like the Effect UI
+  components under `@omnisuite/ui/effect/*`, it is workspace-only until Effect UI is released.
+- `packages/calendar-sample-data` (`@omnisuite/calendar-sample-data`): the sample hostel board and
+  the window and resource query clients that both calendar examples show.
+
+`apps/` holds private tooling:
+
+- `apps/storybook`: the React and Effect UI catalog, comparison stories, and Effect browser tests.
+  Includes the benchmark form, collection pages, workspace shell, and calendar boards.
 - `apps/calendar-example`: a showcase and browser tests for the calendar packages.
+
+`pnpm run check` runs the browser tests of Storybook and the calendar example (`test:browser`).
 
 ## Develop
 

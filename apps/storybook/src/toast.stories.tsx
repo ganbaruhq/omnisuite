@@ -1,10 +1,12 @@
+import { syncToast } from "./story-interactions";
+import { AVATAR_IMAGE } from "./story-data";
 import type { Meta, StoryObj } from "@storybook/react-vite";
 import { Button } from "@omnisuite/ui/components/button";
 import { Toaster, toast } from "@omnisuite/ui/components/toast";
 import { IconCube } from "@tabler/icons-react";
 
 const meta = {
-  title: "Components/Toast",
+  title: "React/Components/Toast",
   decorators: [
     (Story) => (
       <>
@@ -48,7 +50,7 @@ export const Avatar: Story = {
           data: {
             variant: "avatar",
             avatar: {
-              src: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=80&h=80&fit=crop&crop=faces",
+              src: AVATAR_IMAGE,
               alt: "Alex Morgan",
               fallback: "AM",
             },
@@ -96,6 +98,7 @@ export const WithAction: Story = {
 };
 
 export const Promise: Story = {
+  play: syncToast,
   render: () => (
     <Button
       variant="outline"

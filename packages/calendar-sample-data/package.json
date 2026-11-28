@@ -1,0 +1,21 @@
+{
+  "name": "@omnisuite/calendar-sample-data",
+  "version": "0.0.0",
+  "private": true,
+  "description": "The hostel board and the query clients both calendar examples show (workspace only).",
+  "type": "module",
+  "exports": {
+    "./sample-timeline": "./src/sample-timeline.ts",
+    "./window-queries": "./src/window-queries.ts",
+    "./resource-queries": "./src/resource-queries.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@omnisuite/calendar-core": "workspace:^"
+  },
+  "devDependencies": {
+    "typescript": "7.0.2"
+  }
+}

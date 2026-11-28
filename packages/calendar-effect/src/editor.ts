@@ -1,0 +1,356 @@
+import { UiSchema } from "@effect/ui";
+import {
+  cancelMessageOf,
+  decodeEditingResult,
+  describePreviewInEnglish,
+  editCapabilityOf,
+  editFingerprintOf,
+  editGestureLogic,
+  evaluationKeyOf,
+  gestureStartOf,
+  previewDescriptionOf,
+  previewLayout,
+  unchangedMessageOf,
+  unreportedRuleErrorOf,
+  untargetedMessageOf,
+  type CalendarEvent,
+  type Disambiguation,
+  type EditCancelReason,
+  type EditEvaluation,
+  type EditGesture,
+  type EditGestureContext,
+  type EditRule,
+  type Editing,
+  type EditingInput,
+  type EventPlacement,
+  type EventProposal,
+  type GestureRequest,
+  type PreviewDescription,
+  type ResizeEdge,
+  type Timeline,
+  type TimelineInputError,
+  type TimelineRow,
+} from "@omnisuite/calendar-core";
+import { Schema } from "effect";
+import { declared, isObject } from "./schema.js";
+
+// The editing shared by every input: the gesture store's snapshot kept as data, the evaluation
+// shown as the preview, what is announced, and what is emitted to the application. The pointer
+// and the keyboard each work out an evaluation and hand it here. Nothing here touches the DOM.
+
+const editRules = ["constraint", "overlap", "allow"] as const;
+
+/** The edges of an event a resize can take. */
+export const resizeEdges = ["start", "end"] as const satisfies readonly ResizeEdge[];
+
+/**
+ * What an editing timeline emits to the application, the events of calendar-react's
+ * `onProposal` and `onRuleError`. The calendar never changes the events itself: the application
+ * accepts a proposal by supplying new events, or ignores it.
+ *
+ * - `Proposed`: a changed, allowed destination was released or confirmed, once per gesture.
+ * - `RuleFailed`: a rule threw, once per rule per gesture; the destination counts as rejected.
+ */
+export const EditorEvents = UiSchema.TaggedEnum({
+  Proposed: { proposal: declared<EventProposal<any>>(isObject) },
+  RuleFailed: {
+    error: Schema.Unknown,
+    rule: Schema.Literals(editRules),
+    proposal: declared<EventProposal<any>>(isObject),
+  },
+});
+/** One event an editor step emits. */
+export type EditorEvent = typeof EditorEvents.Type;
+
+/**
+ * The fields of one timeline's editing state, to spread into its Model: calendar-core's gesture
+ * snapshot (`gesture`, with the rules it has reported, and `cancellation`), and what the last
+ * gesture ended with.
+ */
+export const editorFields = {
+  gesture: Schema.UndefinedOr(declared<EditGesture>(isObject)),
+  cancellation: Schema.UndefinedOr(
+    declared<NonNullable<EditGestureContext["cancellation"]>>(isObject),
+  ),
+  outcome: Schema.String,
+};
+export const EditorState = Schema.Struct(editorFields);
+export type EditorState = typeof EditorState.Type;
+
+// Used only for its pure `transition`: each timeline keeps its own snapshot in its model.
+const gestureStore = editGestureLogic.createStore();
+type GestureEvent = Parameters<typeof gestureStore.send>[0];
+
+export const idleEditor: EditorState = {
+  ...gestureStore.getSnapshot().context,
+  outcome: "",
+};
+
+const transition = <S extends EditorState>(state: S, event: GestureEvent): S => {
+  const [next] = gestureStore.transition(
+    {
+      ...gestureStore.getSnapshot(),
+      context: { gesture: state.gesture, cancellation: state.cancellation },
+    },
+    event,
+  );
+  return { ...state, gesture: next.context.gesture, cancellation: next.context.cancellation };
+};
+
+/** What the editor works against: the props of the timeline as they are now. */
+export interface EditorContext {
+  readonly timeline: Timeline<any, any>;
+  readonly editing: Editing<any> | undefined;
+  /** The rows shown without any preview, in order. */
+  readonly rows: readonly TimelineRow<any, any>[];
+  readonly describe: ((preview: PreviewDescription<any>) => string) | undefined;
+}
+
+/** The result of an editor step: the next state and the events to emit, in order. */
+export interface EditorStep<S extends EditorState = EditorState> {
+  readonly state: S;
+  readonly notices: readonly EditorEvent[];
+}
+
+/** A step that emits nothing. */
+export const quiet = <S extends EditorState>(state: S): EditorStep<S> => ({ state, notices: [] });
+
+const decodedEditing = new WeakMap<object, Map<string, Editing<any> | TimelineInputError>>();
+
+/**
+ * The editing options decoded, or their error, once per options object. Each update reads the
+ * props as they are then, so the rules evaluated are always the ones given last.
+ */
+export function decodeEditing(
+  editing: EditingInput<any> | undefined,
+  disambiguation: Disambiguation | undefined,
+): Editing<any> | TimelineInputError | undefined {
+  if (!editing) return undefined;
+  const byZone = decodedEditing.get(editing) ?? new Map();
+  decodedEditing.set(editing, byZone);
+  const key = disambiguation ?? "";
+  const cached = byZone.get(key);
+  if (cached) return cached;
+  const result = decodeEditingResult(editing, disambiguation ? { disambiguation } : {});
+  const decoded = result._tag === "Success" ? result.success : result.failure;
+  byZone.set(key, decoded);
+  return decoded;
+}
+
+/**
+ * Identifies the editing options by value, so that options rebuilt on every render, with inline
+ * rules, do not look new.
+ */
+export const editingKeyOf = (editing: EditingInput<any> | undefined) =>
+  editing === undefined
+    ? ""
+    : JSON.stringify([
+        editing.snap,
+        editing.startEditable,
+        editing.resourceEditable,
+        editing.durationEditable,
+        editing.constraint,
+        editing.overlap !== undefined,
+        editing.allow !== undefined,
+      ]);
+
+export const eventOf = (context: Pick<EditorContext, "timeline">, eventId: string) =>
+  context.timeline.events.find(({ id }) => id === eventId);
+
+/**
+ * Starts a gesture, unless one is active or the event cannot be edited that way. Undefined when
+ * it does not start.
+ */
+export function beginGesture<S extends EditorState>(
+  state: S,
+  context: EditorContext,
+  request: GestureRequest,
+): S | undefined {
+  const start = gestureStartOf(context.timeline, context.editing, state.gesture, request);
+  return start && transition({ ...state, outcome: "" }, { type: "gestureStarted", ...start });
+}
+
+/** Points the gesture at another row. */
+export const retargetGesture = <S extends EditorState>(state: S, resourceId: string): S =>
+  state.gesture && state.gesture.targetResourceId !== resourceId
+    ? transition(state, { type: "retargeted", resourceId })
+    : state;
+
+/** Moves a keyboard gesture by whole snap steps. */
+export const stepGesture = <S extends EditorState>(state: S, by: number): S =>
+  transition(state, { type: "stepped", by });
+
+/**
+ * Shows what releasing the gesture now would do, and reports a rule that threw, once per rule
+ * per gesture. An evaluation that shows the same result as the current preview changes nothing.
+ */
+export function showEvaluation<S extends EditorState>(
+  state: S,
+  evaluation: EditEvaluation<any> | undefined,
+): EditorStep<S> {
+  const gesture = state.gesture;
+  if (!gesture) return quiet(state);
+  const notices: EditorEvent[] = [];
+  let next = state;
+  const failed = unreportedRuleErrorOf(gesture, evaluation);
+  if (failed) {
+    next = transition(next, { type: "ruleReported", rule: failed.rule });
+    notices.push(EditorEvents.RuleFailed(failed));
+  }
+  const preview =
+    evaluation === undefined || evaluation.status === "unavailable"
+      ? undefined
+      : { targetResourceId: evaluation.proposal.targetResourceId, evaluation };
+  if (evaluationKeyOf(preview?.evaluation) !== evaluationKeyOf(gesture.preview?.evaluation))
+    next = transition(next, { type: "previewChanged", preview });
+  return { state: next, notices };
+}
+
+/** Ends the gesture without a proposal, saying why. */
+export function cancelGesture<S extends EditorState>(state: S, reason: EditCancelReason): S {
+  const gesture = state.gesture;
+  if (!gesture) return state;
+  return {
+    ...transition(state, { type: "gestureCanceled", reason }),
+    outcome: cancelMessageOf(gesture.operation, reason),
+  };
+}
+
+const describeWith = (
+  context: EditorContext,
+  status: PreviewDescription["status"],
+  proposal: EventProposal<any>,
+  rejection?: { readonly rule: EditRule; readonly error?: unknown },
+) =>
+  (context.describe ?? describePreviewInEnglish)(
+    previewDescriptionOf(context.timeline, status, proposal, rejection),
+  );
+
+/**
+ * Ends the gesture on what it would do: proposes an allowed change, and cancels a gesture with
+ * no destination or a rejected one.
+ */
+export function settleGesture<S extends EditorState>(
+  state: S,
+  context: EditorContext,
+  evaluation: EditEvaluation<any> | undefined,
+): EditorStep<S> {
+  const gesture = state.gesture;
+  if (!gesture) return quiet(state);
+  if (evaluation === undefined || evaluation.status === "unavailable")
+    return quiet(cancelGesture(state, "invalid-target"));
+  if (evaluation.status === "rejected") return quiet(cancelGesture(state, "rejected"));
+  const ended = transition(state, { type: "gestureEnded" });
+  if (evaluation.status === "unchanged")
+    return quiet({
+      ...ended,
+      outcome: unchangedMessageOf(gesture.operation, evaluation.proposal.after.title),
+    });
+  return {
+    state: { ...ended, outcome: describeWith(context, "allowed", evaluation.proposal) },
+    notices: [EditorEvents.Proposed({ proposal: evaluation.proposal })],
+  };
+}
+
+/**
+ * Checks the gesture against new props: it is cancelled when editing was turned off, or the
+ * dragged event is gone or different. `current` is true when the gesture goes on and should be
+ * evaluated again.
+ */
+export function reconcileGesture<S extends EditorState>(
+  state: S,
+  context: EditorContext | undefined,
+): { readonly state: S; readonly current: boolean } {
+  const gesture = state.gesture;
+  if (!gesture) return { state, current: false };
+  if (!context?.editing) return { state: cancelGesture(state, "event-changed"), current: false };
+  const event = eventOf(context, gesture.eventId);
+  if (!event) return { state: cancelGesture(state, "event-removed"), current: false };
+  if (editFingerprintOf(event) !== gesture.fingerprint)
+    return { state: cancelGesture(state, "event-changed"), current: false };
+  return { state, current: true };
+}
+
+/** The destination preview in the row it lands in. */
+export interface EditorPreview {
+  readonly resourceId: string;
+  /** The preview in its lane, or undefined when the destination lies outside the visible range. */
+  readonly placement: EventPlacement<any> | undefined;
+  readonly status: PreviewDescription["status"];
+  readonly rule: EditRule | undefined;
+  readonly description: string;
+}
+
+/** What the view of an editable timeline reads, the same as calendar-react's `TimelineEditor`. */
+export interface TimelineEditor {
+  readonly gesture: EditGesture | undefined;
+  /** Why the last gesture was cancelled, until another begins. */
+  readonly cancellation: EditCancelReason | undefined;
+  readonly preview: EditorPreview | undefined;
+  /** What to announce: the destination while editing, then how the gesture ended. */
+  readonly message: string;
+  /** Whether the event can be edited at all: moved or resized. */
+  canEdit(event: CalendarEvent<any>): boolean;
+  /** Whether the event can be moved, in time or to another resource. */
+  canMove(event: CalendarEvent<any>): boolean;
+  /** Whether either edge of the event can be resized. */
+  canResize(event: CalendarEvent<any>): boolean;
+}
+
+/**
+ * The editor as the view sees it, and the rows with the target row laid out around the preview;
+ * the dragged rendering stays in its row, to be hidden.
+ */
+export function editorViewOf(
+  state: EditorState,
+  context: EditorContext,
+): { readonly editor: TimelineEditor; readonly rows: readonly TimelineRow<any, any>[] } {
+  const { gesture, cancellation } = state;
+  const evaluation = gesture?.preview?.evaluation;
+  const layout = evaluation ? previewLayout(context.timeline, evaluation.proposal) : undefined;
+  const rows =
+    gesture && layout
+      ? context.rows.map((row) => {
+          if (row.kind !== "resource" || row.resource.id !== layout.resourceId) return row;
+          const original =
+            gesture.sourceResourceId === row.resource.id
+              ? row.placements.filter(({ occurrenceId }) => occurrenceId === gesture.occurrenceId)
+              : [];
+          return {
+            ...row,
+            laneCount: layout.laneCount,
+            placements: [...layout.placements, ...original],
+          };
+        })
+      : context.rows;
+  const rejection =
+    evaluation?.status === "rejected"
+      ? { rule: evaluation.rule, error: evaluation.error }
+      : undefined;
+  const preview: EditorPreview | undefined =
+    layout && evaluation
+      ? {
+          resourceId: layout.resourceId,
+          placement: layout.preview,
+          status: evaluation.status,
+          rule: rejection?.rule,
+          description: describeWith(context, evaluation.status, evaluation.proposal, rejection),
+        }
+      : undefined;
+  const message = gesture
+    ? (preview?.description ??
+      untargetedMessageOf(gesture.operation, eventOf(context, gesture.eventId)?.title ?? ""))
+    : state.outcome;
+  return {
+    editor: {
+      gesture,
+      cancellation: cancellation?.reason,
+      preview,
+      message,
+      canEdit: (event) => editCapabilityOf(event, context.editing).edit,
+      canMove: (event) => editCapabilityOf(event, context.editing).move,
+      canResize: (event) => editCapabilityOf(event, context.editing).duration,
+    },
+    rows,
+  };
+}

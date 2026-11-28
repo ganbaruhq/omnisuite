@@ -30,10 +30,14 @@ import {
   views,
   windowText,
 } from "./board-shared";
-import type { ResourceQueries } from "./resource-queries";
-import { sampleTimeline, type SampleBoard, type StayKind } from "./sample-timeline";
+import type { ResourceQueries } from "@omnisuite/calendar-sample-data/resource-queries";
+import {
+  sampleTimeline,
+  type SampleBoard,
+  type StayKind,
+} from "@omnisuite/calendar-sample-data/sample-timeline";
 import { useBoard, type EditingOptions, type SampleEvent } from "./use-board";
-import type { WindowQueries } from "./window-queries";
+import type { WindowQueries } from "@omnisuite/calendar-sample-data/window-queries";
 
 // A second composition of the same calendar, to show what the first one does not fix. Behavior
 // comes from `useBoard` (and through it `useResourceTimeline`) and from the unstyled parts; the

@@ -103,6 +103,21 @@ export const windowLoadingLogic = createStoreLogic({
   },
 });
 
+/** How many times the viewer has asked for window `key` again, from `windowLoadingLogic`. */
+export const windowAttemptOf = (retries: Readonly<Record<string, number>>, key: string) =>
+  retries[key] ?? 0;
+
+/**
+ * Whether signalling `attempt` of window `key` is a retry, given the attempt last signalled for
+ * each window. Only an attempt not signalled yet is one: coming back to a window that was once
+ * retried is not a retry.
+ */
+export const isWindowRetry = (
+  signalled: Readonly<Record<string, number>>,
+  key: string,
+  attempt: number,
+) => attempt > (signalled[key] ?? 0);
+
 /**
  * Called when the calendar needs a window. It may return a function that ends the calendar's
  * interest, called when the window is no longer shown or the calendar goes away. That must stop

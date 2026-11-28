@@ -1,3 +1,5 @@
+import { dismissBadge } from "./story-interactions";
+import { AVATAR_IMAGE, FLAG_IMAGE } from "./story-data";
 import type { Meta, StoryObj } from "@storybook/react-vite";
 import { useState } from "react";
 import { IconArrowRight, IconArrowUp, IconPlus } from "@tabler/icons-react";
@@ -15,7 +17,7 @@ import {
 // one story per type (Pill / Badge / Modern), each with every content row at sm · md · lg.
 
 const meta = {
-  title: "Components/Badge",
+  title: "React/Components/Badge",
   component: Badge,
   args: { children: "Label", variant: "pill-color", color: "brand", size: "md" },
 } satisfies Meta<typeof Badge>;
@@ -37,8 +39,8 @@ const COLORS: BadgeColor[] = [
   "pink",
   "orange",
 ];
-const AVATAR = "https://i.pravatar.cc/64?img=47";
-const FLAG = "https://www.untitledui.com/images/flags/AU.svg";
+const AVATAR = AVATAR_IMAGE;
+const FLAG = FLAG_IMAGE;
 
 function Dismissible(props: { variant: BadgeVariant; color: BadgeColor; size: BadgeSize }) {
   const [visible, setVisible] = useState(true);
@@ -173,7 +175,10 @@ export const Example: Story = {
   ),
 };
 
-export const Pill: Story = { render: () => <TypeStory variant="pill-color" color="brand" /> };
+export const Pill: Story = {
+  play: dismissBadge,
+  render: () => <TypeStory variant="pill-color" color="brand" />,
+};
 export const Rectangle: Story = {
   name: "Badge",
   render: () => <TypeStory variant="color" color="brand" />,

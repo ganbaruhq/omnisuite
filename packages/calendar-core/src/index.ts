@@ -7,7 +7,16 @@ export type {
   CalendarNode,
   CalendarNodeInput,
 } from "./resource.js";
-export { collapsedIdsOf, resourceHierarchyLogic } from "./resource-hierarchy.js";
+export { collapsedIdsOf, expansionToggleOf, resourceHierarchyLogic } from "./resource-hierarchy.js";
+export {
+  disclosureDescriptionOf,
+  disclosureLabelOf,
+  laneLabelOf,
+  placementBoxOf,
+  slotBoxOf,
+  type PlacementBox,
+  type SlotBox,
+} from "./rendering.js";
 export { TimelineInputError, type TimelineInputIssue } from "./input-error.js";
 export {
   timelinePresets,
@@ -36,9 +45,12 @@ export { snapStepResult, snapToGrid, type SnapStep } from "./snap.js";
 export type { EditConstraint, EditConstraintInput } from "./constraint.js";
 export {
   decodeEditingResult,
+  editCapabilityOf,
   evaluateMove,
   evaluateResize,
   previewLayout,
+  resizableEdgesOf,
+  type EditCapability,
   type EditContext,
   type EditEvaluation,
   type Editing,
@@ -52,17 +64,40 @@ export {
   type ResizeRequest,
 } from "./editing.js";
 export {
+  cancelMessageOf,
+  describePreviewInEnglish,
+  editFingerprintOf,
+  evaluationKeyOf,
+  previewDescriptionOf,
+  unchangedMessageOf,
+  untargetedMessageOf,
+  type PreviewDescription,
+} from "./edit-text.js";
+export {
   editGestureLogic,
   type EditCancelReason,
   type EditGesture,
   type EditGestureContext,
   type EditOperation,
   type GesturePreview,
+  type GestureStart,
 } from "./gesture.js";
 export {
+  canStepGesture,
+  evaluateGesture,
+  gestureRowOf,
+  gestureStartOf,
+  unreportedRuleErrorOf,
+  type GesturePosition,
+  type GestureRequest,
+  type RuleError,
+} from "./gesture-steps.js";
+export {
   intersectsWindow,
+  isWindowRetry,
   observeWindow,
   timelineWindowOf,
+  windowAttemptOf,
   windowLoadingLogic,
   windowStateOf,
   WindowObserverError,

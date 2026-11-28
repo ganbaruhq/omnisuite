@@ -89,7 +89,13 @@ export const ToastProvider = restyle(KitToastProvider, (toastProvider) => {
       content({ element: h.div, toast }).children(
         icon(h, toast),
         h.div.class("flex min-w-0 flex-1 flex-col gap-1").children(
-          toast.title === undefined ? null : title({ element: h.div, toast }).children(toast.title),
+          h.div
+            .class("flex flex-wrap items-baseline gap-x-2 gap-y-1")
+            .children(
+              toast.title === undefined
+                ? null
+                : title({ element: h.div, toast }).children(toast.title),
+            ),
           toast.description === undefined
             ? null
             : description({ element: h.div, toast }).children(toast.description),

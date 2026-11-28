@@ -5,7 +5,7 @@ import { createRoot, type Root } from "react-dom/client";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vite-plus/test";
 import { page, userEvent } from "vite-plus/test/browser";
 import { ResourceTimelineExample } from "./resource-timeline-example";
-import { flatTimeline, sampleEditing } from "./sample-timeline";
+import { flatTimeline, sampleEditing } from "@omnisuite/calendar-sample-data/sample-timeline";
 import "./styles.css";
 
 // These tests drive the calendar the way a pointer and a keyboard do, in a real browser, and

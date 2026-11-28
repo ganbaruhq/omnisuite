@@ -59,7 +59,7 @@ import { ToggleGroup, ToggleGroupItem } from "@omnisuite/ui/components/toggle-gr
 import type { ControlSize } from "@omnisuite/ui/lib/recipes/control";
 
 const meta = {
-  title: "Forms/Form",
+  title: "React/Form/Form",
   parameters: { layout: "padded" },
 } satisfies Meta;
 export default meta;
