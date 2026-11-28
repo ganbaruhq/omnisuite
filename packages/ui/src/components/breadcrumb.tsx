@@ -1,3 +1,11 @@
+import {
+  breadcrumbListClasses,
+  breadcrumbItemClasses,
+  breadcrumbLinkClasses,
+  breadcrumbPageClasses,
+  breadcrumbSeparatorClasses,
+  breadcrumbEllipsisClasses,
+} from "@omnisuite/ui/lib/recipes/breadcrumb";
 import * as React from "react";
 import { mergeProps } from "@base-ui/react/merge-props";
 import { useRender } from "@base-ui/react/use-render";
@@ -14,10 +22,7 @@ function BreadcrumbList({ className, ...props }: React.ComponentProps<"ol">) {
   return (
     <ol
       data-slot="breadcrumb-list"
-      className={cn(
-        "flex flex-wrap items-center gap-1.5 text-sm wrap-break-word text-muted-foreground",
-        className,
-      )}
+      className={cn(...breadcrumbListClasses, className)}
       {...props}
     />
   );
@@ -27,7 +32,7 @@ function BreadcrumbItem({ className, ...props }: React.ComponentProps<"li">) {
   return (
     <li
       data-slot="breadcrumb-item"
-      className={cn("inline-flex items-center gap-1", className)}
+      className={cn(...breadcrumbItemClasses, className)}
       {...props}
     />
   );
@@ -38,7 +43,7 @@ function BreadcrumbLink({ className, render, ...props }: useRender.ComponentProp
     defaultTagName: "a",
     props: mergeProps<"a">(
       {
-        className: cn("transition-colors hover:text-foreground", className),
+        className: cn(...breadcrumbLinkClasses, className),
       },
       props,
     ),
@@ -56,7 +61,7 @@ function BreadcrumbPage({ className, ...props }: React.ComponentProps<"span">) {
       role="link"
       aria-disabled="true"
       aria-current="page"
-      className={cn("font-normal text-foreground", className)}
+      className={cn(...breadcrumbPageClasses, className)}
       {...props}
     />
   );
@@ -68,7 +73,7 @@ function BreadcrumbSeparator({ children, className, ...props }: React.ComponentP
       data-slot="breadcrumb-separator"
       role="presentation"
       aria-hidden="true"
-      className={cn("[&>svg]:size-3.5", className)}
+      className={cn(...breadcrumbSeparatorClasses, className)}
       {...props}
     >
       {children ?? <IconChevronRight />}
@@ -82,7 +87,7 @@ function BreadcrumbEllipsis({ className, ...props }: React.ComponentProps<"span"
       data-slot="breadcrumb-ellipsis"
       role="presentation"
       aria-hidden="true"
-      className={cn("flex size-4 items-center justify-center [&>svg]:size-3.5", className)}
+      className={cn(...breadcrumbEllipsisClasses, className)}
       {...props}
     >
       <IconDots />
