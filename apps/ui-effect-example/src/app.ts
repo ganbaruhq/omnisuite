@@ -19,7 +19,7 @@ import { Textarea } from "@omnisuite/ui/effect/components/textarea";
 import { ToastProvider } from "@omnisuite/ui/effect/components/toast";
 import { Tooltip } from "@omnisuite/ui/effect/components/tooltip";
 import { ChoiceControls } from "./pages/choice-controls";
-import { CollectionList } from "./collection-list";
+import { CollectionList } from "./pages/collection-list";
 
 // ---------------------------------------------------------------------------
 // The form's rules
