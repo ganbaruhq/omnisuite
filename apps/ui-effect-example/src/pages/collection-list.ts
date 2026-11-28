@@ -268,39 +268,48 @@ export const CollectionList = Html.component({
         ),
     });
 
-    return h.section.class("mx-auto flex w-full max-w-2xl flex-col gap-4 px-10 pb-10").children(
-      h.div
-        .class("flex items-center justify-between gap-3")
-        .children(h.h2.class("text-lg font-semibold").children("Your collections"), filters),
-      h.ul
-        .attr("aria-label", "Your collections")
-        .class("flex flex-col divide-y rounded-lg border")
-        .children(
-          visible.map((row) =>
-            h.li
-              .attr("data-row", row.id)
-              .class("flex items-center justify-between gap-3 px-4 py-3")
-              .children(
-                h.div
-                  .class("flex flex-col")
-                  .children(
-                    h.span
-                      .class("text-sm font-medium")
-                      .children(
-                        row.name,
-                        row.pinned
-                          ? h.span.class("ml-2 text-xs text-muted-foreground").children("Pinned")
-                          : null,
-                      ),
-                    h.span
-                      .class("text-xs text-muted-foreground")
-                      .children(`${row.pages} pages${row.locked ? " · Locked" : ""}`),
-                  ),
-                rowMenu(row),
-              ),
+    return h.section
+      .attr("aria-labelledby", "your-collections")
+      .class("mx-auto flex w-full max-w-2xl flex-col gap-4 px-10 pb-10")
+      .children(
+        h.div
+          .class("flex items-center justify-between gap-3")
+          .children(
+            h.h2
+              .attr("id", "your-collections")
+              .class("text-lg font-semibold")
+              .children("Your collections"),
+            filters,
           ),
-        ),
-      h.p.attr("role", "status").class("text-sm text-muted-foreground").children(model.status),
-    );
+        h.ul
+          .attr("aria-label", "Your collections")
+          .class("flex flex-col divide-y rounded-lg border")
+          .children(
+            visible.map((row) =>
+              h.li
+                .attr("data-row", row.id)
+                .class("flex items-center justify-between gap-3 px-4 py-3")
+                .children(
+                  h.div
+                    .class("flex flex-col")
+                    .children(
+                      h.span
+                        .class("text-sm font-medium")
+                        .children(
+                          row.name,
+                          row.pinned
+                            ? h.span.class("ml-2 text-xs text-muted-foreground").children("Pinned")
+                            : null,
+                        ),
+                      h.span
+                        .class("text-xs text-muted-foreground")
+                        .children(`${row.pages} pages${row.locked ? " · Locked" : ""}`),
+                    ),
+                  rowMenu(row),
+                ),
+            ),
+          ),
+        h.p.attr("role", "status").class("text-sm text-muted-foreground").children(model.status),
+      );
   },
 });

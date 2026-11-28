@@ -40,13 +40,16 @@ afterEach(async () => {
   expect(logged.filter((line) => / failed /.test(line))).toEqual([]);
 });
 
+const list = () => document.querySelector('section[aria-labelledby="your-collections"]')!;
 const buttons = (root: ParentNode = document) => [
   ...root.querySelectorAll<HTMLButtonElement>("button"),
 ];
 const filtersTrigger = () =>
-  buttons().find((button) => button.getAttribute("data-slot") === "sheet-trigger");
+  list()
+    ? buttons(list()).find((button) => button.getAttribute("data-slot") === "sheet-trigger")
+    : undefined;
 const rowTrigger = (name: string) =>
-  document.querySelector<HTMLButtonElement>(`button[aria-label="Actions for ${name}"]`)!;
+  list().querySelector<HTMLButtonElement>(`button[aria-label="Actions for ${name}"]`)!;
 const sortTrigger = () => buttons().find((button) => button.textContent?.startsWith("Sort by"))!;
 const helpTrigger = () =>
   buttons().find((button) => button.textContent?.trim() === "How do filters work?")!;
@@ -70,10 +73,10 @@ const menuItem = (name: string) =>
 const highlighted = () =>
   openMenu()?.querySelector("[data-highlighted]")?.textContent?.trim() ?? null;
 const rowNames = () =>
-  [...document.querySelectorAll<HTMLElement>("li[data-row]")].map(
+  [...list().querySelectorAll<HTMLElement>("li[data-row]")].map(
     (row) => row.querySelector("span")?.firstChild?.textContent,
   );
-const status = () => document.querySelector('[role="status"]')?.textContent ?? "";
+const status = () => list().querySelector('[role="status"]')?.textContent ?? "";
 
 /** Whether `element` is what a press on its center lands on: nothing on the top layer covers it. */
 const isOnTop = (element: HTMLElement | null) => {
