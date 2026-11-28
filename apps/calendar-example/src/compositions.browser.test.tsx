@@ -10,15 +10,19 @@ import {
   createSampleResourceFetch,
   type FetchResources,
   type ResourcePage,
-} from "./resource-queries";
+} from "@omnisuite/calendar-sample-data/resource-queries";
 import {
   flatTimeline,
   lazyServerEvents,
   lazyServerResources,
   sampleEditing,
-} from "./sample-timeline";
+} from "@omnisuite/calendar-sample-data/sample-timeline";
 import { Showcase } from "./showcase";
-import { createSampleFetch, createWindowQueries, type FetchWindow } from "./window-queries";
+import {
+  createSampleFetch,
+  createWindowQueries,
+  type FetchWindow,
+} from "@omnisuite/calendar-sample-data/window-queries";
 import "./styles.css";
 
 // Two compositions of one calendar, mounted together, the way an application would. The first has

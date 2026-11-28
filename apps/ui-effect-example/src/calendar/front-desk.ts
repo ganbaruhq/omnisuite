@@ -25,9 +25,9 @@ import {
   views,
   windowText,
 } from "./board";
-import type { SampleBoard, StayKind } from "./sample-timeline";
-import type { ResourceQueries } from "./resource-queries";
-import type { WindowQueries } from "./window-queries";
+import type { SampleBoard, StayKind } from "@omnisuite/calendar-sample-data/sample-timeline";
+import type { ResourceQueries } from "@omnisuite/calendar-sample-data/resource-queries";
+import type { WindowQueries } from "@omnisuite/calendar-sample-data/window-queries";
 
 // The React example's "Front desk" board, drawn with @omnisuite/calendar-effect: the same
 // toolbar, rows, axis and events, with the same classes. With `queries` it loads events window by

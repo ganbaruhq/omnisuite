@@ -8,15 +8,19 @@ import {
   createResourceQueries,
   createSampleResourceFetch,
   type ResourceQueries,
-} from "./resource-queries";
+} from "@omnisuite/calendar-sample-data/resource-queries";
 import {
   flatTimeline,
   lazyServerEvents,
   lazyServerResources,
   sampleEditing,
   type SampleBoard,
-} from "./sample-timeline";
-import { createSampleFetch, createWindowQueries, type WindowQueries } from "./window-queries";
+} from "@omnisuite/calendar-sample-data/sample-timeline";
+import {
+  createSampleFetch,
+  createWindowQueries,
+  type WindowQueries,
+} from "@omnisuite/calendar-sample-data/window-queries";
 import "../styles.css";
 
 // The Effect example's editable calendar in a real browser: events moved and resized from the

@@ -1,13 +1,19 @@
 import type { Html } from "@effect/ui/html";
 import { FrontDesk } from "./front-desk";
-import { createResourceQueries, createSampleResourceFetch } from "./resource-queries";
+import {
+  createResourceQueries,
+  createSampleResourceFetch,
+} from "@omnisuite/calendar-sample-data/resource-queries";
 import {
   lazyServerEvents,
   lazyServerResources,
   sampleEditing,
   sampleTimeline,
-} from "./sample-timeline";
-import { createSampleFetch, createWindowQueries } from "./window-queries";
+} from "@omnisuite/calendar-sample-data/sample-timeline";
+import {
+  createSampleFetch,
+  createWindowQueries,
+} from "@omnisuite/calendar-sample-data/window-queries";
 
 /**
  * The application's side of the calendar: queries for event windows. As in the React example, a

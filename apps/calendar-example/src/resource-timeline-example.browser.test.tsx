@@ -3,7 +3,7 @@ import { createRoot, type Root } from "react-dom/client";
 import { afterEach, describe, expect, it } from "vite-plus/test";
 import { page, userEvent } from "vite-plus/test/browser";
 import { ResourceTimelineExample } from "./resource-timeline-example";
-import { flatTimeline, sampleTimeline } from "./sample-timeline";
+import { flatTimeline, sampleTimeline } from "@omnisuite/calendar-sample-data/sample-timeline";
 import "./styles.css";
 
 let root: Root | undefined;

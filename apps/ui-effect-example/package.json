@@ -14,6 +14,7 @@
     "@effect/ui-kit": "https://pkg.pr.new/Effect-TS/ui/@effect/ui-kit@dec1ca9f98b9ab7687cd962bf70e488607239fa3",
     "@omnisuite/calendar-core": "workspace:*",
     "@omnisuite/calendar-effect": "workspace:*",
+    "@omnisuite/calendar-sample-data": "workspace:*",
     "@omnisuite/ui": "workspace:*",
     "cn": "0.5.2",
     "effect": "^4.1.6",

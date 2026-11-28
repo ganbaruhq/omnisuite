@@ -12,6 +12,7 @@
   "dependencies": {
     "@omnisuite/calendar-core": "workspace:*",
     "@omnisuite/calendar-react": "workspace:*",
+    "@omnisuite/calendar-sample-data": "workspace:*",
     "@omnisuite/ui": "workspace:*",
     "cn": "0.5.2",
     "react": "19.3.1",

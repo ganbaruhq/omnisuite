@@ -1,5 +1,5 @@
 import type { CalendarEventInput, CalendarNodeInput } from "@omnisuite/calendar-core";
-import type { SampleBoard, StayKind } from "./sample-timeline";
+import type { SampleBoard, StayKind } from "@omnisuite/calendar-sample-data/sample-timeline";
 
 // Fixtures for the dataset size the calendar is verified at: 100 resources and 1,000 events. They
 // are generated, not stored, and deterministic, so a run can be repeated and a failure explained.

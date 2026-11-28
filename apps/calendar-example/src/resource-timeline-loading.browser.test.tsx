@@ -5,8 +5,11 @@ import { createRoot, type Root } from "react-dom/client";
 import { afterEach, describe, expect, it } from "vite-plus/test";
 import { page } from "vite-plus/test/browser";
 import { ResourceTimelineExample } from "./resource-timeline-example";
-import { flatTimeline, type StayKind } from "./sample-timeline";
-import { createWindowQueries, type FetchWindow } from "./window-queries";
+import { flatTimeline, type StayKind } from "@omnisuite/calendar-sample-data/sample-timeline";
+import {
+  createWindowQueries,
+  type FetchWindow,
+} from "@omnisuite/calendar-sample-data/window-queries";
 import "./styles.css";
 
 type SampleEvent = CalendarEventInput<{ kind: StayKind }>;

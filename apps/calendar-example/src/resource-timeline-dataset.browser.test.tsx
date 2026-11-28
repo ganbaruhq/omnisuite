@@ -11,9 +11,15 @@ import {
   sharedDataset,
   type DatasetOptions,
 } from "./dataset";
-import { createResourceQueries, createSampleResourceFetch } from "./resource-queries";
+import {
+  createResourceQueries,
+  createSampleResourceFetch,
+} from "@omnisuite/calendar-sample-data/resource-queries";
 import { ResourceTimelineExample } from "./resource-timeline-example";
-import { createSampleFetch, createWindowQueries } from "./window-queries";
+import {
+  createSampleFetch,
+  createWindowQueries,
+} from "@omnisuite/calendar-sample-data/window-queries";
 import "./styles.css";
 
 // The calendar is verified at the size the first release is meant for: 100 resources with 1,000

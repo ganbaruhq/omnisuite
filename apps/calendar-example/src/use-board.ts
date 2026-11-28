@@ -6,9 +6,15 @@ import type {
 } from "@omnisuite/calendar-core";
 import { useResourceTimeline } from "@omnisuite/calendar-react";
 import { useCallback, useState, useSyncExternalStore } from "react";
-import type { ResourceQueries, ResourceQueriesSnapshot } from "./resource-queries";
-import type { SampleBoard, StayKind } from "./sample-timeline";
-import type { WindowQueries, WindowQueriesSnapshot } from "./window-queries";
+import type {
+  ResourceQueries,
+  ResourceQueriesSnapshot,
+} from "@omnisuite/calendar-sample-data/resource-queries";
+import type { SampleBoard, StayKind } from "@omnisuite/calendar-sample-data/sample-timeline";
+import type {
+  WindowQueries,
+  WindowQueriesSnapshot,
+} from "@omnisuite/calendar-sample-data/window-queries";
 
 export type SampleEvent = CalendarEventInput<{ kind: StayKind }>;
 export type SampleProposal = EventProposal<{ kind: StayKind }>;

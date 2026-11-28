@@ -3,8 +3,11 @@ import { Effect, Fiber, Layer } from "effect";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vite-plus/test";
 import { page, userEvent } from "vite-plus/test/browser";
 import { FrontDesk, type SampleProposal } from "./front-desk";
-import { flatTimeline, sampleEditing } from "./sample-timeline";
-import { createSampleFetch, createWindowQueries } from "./window-queries";
+import { flatTimeline, sampleEditing } from "@omnisuite/calendar-sample-data/sample-timeline";
+import {
+  createSampleFetch,
+  createWindowQueries,
+} from "@omnisuite/calendar-sample-data/window-queries";
 import "../styles.css";
 
 // The Effect example's board edited by a pointer in a real browser, as the React example's

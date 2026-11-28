@@ -4,8 +4,15 @@ import { Effect, Fiber, Layer } from "effect";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vite-plus/test";
 import { page, userEvent } from "vite-plus/test/browser";
 import { FrontDesk, type SampleEvent } from "./front-desk";
-import { flatTimeline, sampleTimeline, type SampleBoard } from "./sample-timeline";
-import { createWindowQueries, type FetchWindow } from "./window-queries";
+import {
+  flatTimeline,
+  sampleTimeline,
+  type SampleBoard,
+} from "@omnisuite/calendar-sample-data/sample-timeline";
+import {
+  createWindowQueries,
+  type FetchWindow,
+} from "@omnisuite/calendar-sample-data/window-queries";
 import "../styles.css";
 
 // The Effect example's resource timeline in a real browser, loading its events window by window

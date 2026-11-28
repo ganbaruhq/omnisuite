@@ -10,8 +10,12 @@ import { createRoot, type Root } from "react-dom/client";
 import { afterEach, describe, expect, it, vi } from "vite-plus/test";
 import { page } from "vite-plus/test/browser";
 import { ResourceTimelineExample } from "./resource-timeline-example";
-import { flatTimeline } from "./sample-timeline";
-import { createResourceQueries, type FetchResources, type ResourcePage } from "./resource-queries";
+import { flatTimeline } from "@omnisuite/calendar-sample-data/sample-timeline";
+import {
+  createResourceQueries,
+  type FetchResources,
+  type ResourcePage,
+} from "@omnisuite/calendar-sample-data/resource-queries";
 import "./styles.css";
 
 const roots: { root: Root; container: HTMLElement }[] = [];
