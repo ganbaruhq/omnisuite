@@ -1,4 +1,4 @@
-import { Command, Component } from "@effect/ui";
+import { UiSchema } from "@effect/ui";
 import {
   cancelMessageOf,
   decodeEditingResult,
@@ -29,8 +29,8 @@ import {
   type TimelineInputError,
   type TimelineRow,
 } from "@omnisuite/calendar-core";
-import { Effect, Schema } from "effect";
-import { declared, isObject, isFunction } from "./schema.js";
+import { Schema } from "effect";
+import { declared, isObject } from "./schema.js";
 
 // The editing shared by every input: the gesture store's snapshot kept as data, the evaluation
 // shown as the preview, what is announced, and what is emitted to the application. The pointer
@@ -38,85 +38,24 @@ import { declared, isObject, isFunction } from "./schema.js";
 
 const editRules = ["constraint", "overlap", "allow"] as const;
 
-/** The editing props of a timeline, the same as calendar-react's `EditorOptions`. */
-export interface EditorOptions<TEventData = unknown> {
-  /** Turns editing on. Without it the timeline is read-only. */
-  readonly editing?: EditingInput<TEventData> | undefined;
-  /**
-   * Called once when a changed, allowed destination is released or confirmed. The calendar does
-   * not change the events: accept the proposal by supplying new events, or ignore it.
-   */
-  readonly onProposal?: ((proposal: EventProposal<TEventData>) => void) | undefined;
-  /** Called, once per rule per gesture, when a rule throws; the destination counts as rejected. */
-  readonly onRuleError?:
-    | ((
-        error: unknown,
-        context: { readonly rule: EditRule; readonly proposal: EventProposal<TEventData> },
-      ) => void)
-    | undefined;
-  /** Words for the preview's accessible description. Defaults to English. */
-  readonly describe?: ((preview: PreviewDescription<TEventData>) => string) | undefined;
-}
-
-/** What an editor step tells the application, through its callbacks, once the step applies. */
-export type EditorNotice =
-  | { readonly _tag: "Proposed"; readonly proposal: EventProposal<any> }
-  | {
-      readonly _tag: "RuleFailed";
-      readonly error: unknown;
-      readonly rule: EditRule;
-      readonly proposal: EventProposal<any>;
-    };
-
-/** Calls `onProposal` after the update that settled the gesture. */
-export const NotifyProposal = Command.make(
-  "NotifyProposal",
-  {
-    args: {
-      onProposal: declared<(proposal: EventProposal<any>) => void>(isFunction),
-      proposal: declared<EventProposal<any>>(isObject),
-    },
+/**
+ * What an editing timeline emits to the application, the events of calendar-react's
+ * `onProposal` and `onRuleError`. The calendar never changes the events itself: the application
+ * accepts a proposal by supplying new events, or ignores it.
+ *
+ * - `Proposed`: a changed, allowed destination was released or confirmed, once per gesture.
+ * - `RuleFailed`: a rule threw, once per rule per gesture; the destination counts as rejected.
+ */
+export const EditorEvents = UiSchema.TaggedEnum({
+  Proposed: { proposal: declared<EventProposal<any>>(isObject) },
+  RuleFailed: {
+    error: Schema.Unknown,
+    rule: Schema.Literals(editRules),
+    proposal: declared<EventProposal<any>>(isObject),
   },
-  ({ onProposal, proposal }) =>
-    Effect.sync(() => onProposal(proposal)).pipe(Effect.as(Component.noop)),
-);
-
-/** Calls `onRuleError` after the update that evaluated the rule. */
-export const NotifyRuleError = Command.make(
-  "NotifyRuleError",
-  {
-    args: {
-      onRuleError: declared<NonNullable<EditorOptions<any>["onRuleError"]>>(isFunction),
-      error: Schema.Unknown,
-      rule: Schema.Literals(editRules),
-      proposal: declared<EventProposal<any>>(isObject),
-    },
-  },
-  ({ onRuleError, error, rule, proposal }) =>
-    Effect.sync(() => onRuleError(error, { rule, proposal })).pipe(Effect.as(Component.noop)),
-);
-
-/** The Commands that hand `notices` to the callbacks given in `options`, in order. */
-export const notifyCommands = (
-  options: Pick<EditorOptions<any>, "onProposal" | "onRuleError">,
-  notices: readonly EditorNotice[],
-) =>
-  notices.flatMap((notice) => {
-    if (notice._tag === "Proposed")
-      return options.onProposal
-        ? [NotifyProposal.make({ onProposal: options.onProposal, proposal: notice.proposal })]
-        : [];
-    return options.onRuleError
-      ? [
-          NotifyRuleError.make({
-            onRuleError: options.onRuleError,
-            error: notice.error,
-            rule: notice.rule,
-            proposal: notice.proposal,
-          }),
-        ]
-      : [];
-  });
+});
+/** One event an editor step emits. */
+export type EditorEvent = typeof EditorEvents.Type;
 
 /**
  * The fields of one timeline's editing state, to spread into its Model: calendar-core's gesture
@@ -164,10 +103,10 @@ export interface EditorContext {
   readonly describe: ((preview: PreviewDescription<any>) => string) | undefined;
 }
 
-/** The result of an editor step: the next state and what to emit, in order. */
+/** The result of an editor step: the next state and the events to emit, in order. */
 export interface EditorStep<S extends EditorState = EditorState> {
   readonly state: S;
-  readonly notices: readonly EditorNotice[];
+  readonly notices: readonly EditorEvent[];
 }
 
 const quiet = <S extends EditorState>(state: S): EditorStep<S> => ({ state, notices: [] });
@@ -280,7 +219,7 @@ export function showEvaluation<S extends EditorState>(
 ): EditorStep<S> {
   const gesture = state.gesture;
   if (!gesture) return quiet(state);
-  const notices: EditorNotice[] = [];
+  const notices: EditorEvent[] = [];
   let next = state;
   if (
     evaluation?.status === "rejected" &&
@@ -288,12 +227,13 @@ export function showEvaluation<S extends EditorState>(
     !state.reported.includes(evaluation.rule)
   ) {
     next = { ...next, reported: [...next.reported, evaluation.rule] };
-    notices.push({
-      _tag: "RuleFailed",
-      error: evaluation.error,
-      rule: evaluation.rule,
-      proposal: evaluation.proposal,
-    });
+    notices.push(
+      EditorEvents.RuleFailed({
+        error: evaluation.error,
+        rule: evaluation.rule,
+        proposal: evaluation.proposal,
+      }),
+    );
   }
   const preview =
     evaluation === undefined || evaluation.status === "unavailable"
@@ -346,7 +286,7 @@ export function settleGesture<S extends EditorState>(
     });
   return {
     state: { ...ended, outcome: describeWith(context, "allowed", evaluation.proposal) },
-    notices: [{ _tag: "Proposed", proposal: evaluation.proposal }],
+    notices: [EditorEvents.Proposed({ proposal: evaluation.proposal })],
   };
 }
 

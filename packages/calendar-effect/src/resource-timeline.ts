@@ -20,7 +20,6 @@ import {
   type CalendarNodeInput,
   type EditingInput,
   type EventPlacement,
-  type EventProposal,
   type PreviewDescription,
   type ResizeEdge,
   type Timeline,
@@ -35,13 +34,13 @@ import { Schema, Stream } from "effect";
 import {
   decodeEditing,
   editingKeyOf,
+  EditorEvents,
   editorFields,
   editorViewOf,
   idleEditor,
-  notifyCommands,
   reconcileGesture,
   type EditorContext,
-  type EditorOptions,
+  type EditorEvent,
   type EditorPreview,
   type EditorStep,
   type TimelineEditor,
@@ -107,13 +106,6 @@ export const ResourceTimelineProps = Schema.Struct({
    * arrows. Without it the timeline is read-only. Invalid options make the timeline `invalid`.
    */
   editing: Schema.optional(declared<EditingInput<any>>(isObject)),
-  /**
-   * Called once when a changed, allowed destination is released or confirmed. The calendar does not change
-   * the events: accept the proposal by supplying new events, or ignore it.
-   */
-  onProposal: Schema.optional(declared<(proposal: EventProposal<any>) => void>(isFunction)),
-  /** Called, once per rule per gesture, when a rule throws; the destination counts as rejected. */
-  onRuleError: Schema.optional(declared<NonNullable<EditorOptions["onRuleError"]>>(isFunction)),
   /** Words for the preview's accessible description. Defaults to English. */
   describe: Schema.optional(declared<(preview: PreviewDescription<any>) => string>(isFunction)),
 });
@@ -185,8 +177,14 @@ const transitionWindows = (model: Model, event: WindowEvent): Model => {
 };
 
 /**
+ * The events a {@link ResourceTimeline} emits, to map with `onEmit`: `Proposed` when a changed,
+ * allowed destination is released or confirmed, and `RuleFailed` when an editing rule throws.
+ */
+export const ResourceTimelineEvents = EditorEvents;
+
+/**
  * Applies an editor step: the next Model, with the pointer forgotten once no gesture follows
- * it, and the application's callbacks called once the step applies.
+ * it, and the step's events emitted to the application.
  */
 const applied = <Next>(
   $: {
@@ -201,8 +199,8 @@ const applied = <Next>(
       ? step.state
       : { ...step.state, pointer: null };
   if (step.notices.length === 0) return state === $.model ? $.model : $.set(state);
-  const next = $.set(state) as Next & { run(...commands: ReturnType<typeof notifyCommands>): Next };
-  return next.run(...notifyCommands($.props, step.notices));
+  const next = $.set(state) as Next & { emit(...events: readonly EditorEvent[]): Next };
+  return next.emit(...step.notices);
 };
 
 type Decoded = ReturnType<typeof decodeTimelineResult>;
@@ -331,12 +329,16 @@ export interface ResourceTimelineLoading<TError = unknown> {
  * With `loading`, the window the timeline shows is signalled to `onLoadWindow` once for each
  * window it shows, and again for a failed window after `retry`. The observation ends when the
  * window changes or the timeline goes away. An error the observer throws fails the timeline.
+ *
+ * With `editing`, the timeline emits {@link ResourceTimelineEvents}: map `Proposed` and
+ * `RuleFailed` with `onEmit` and decide on each proposal in the application's own update.
  */
 export const ResourceTimeline = Html.component({
   name: "ResourceTimeline",
   props: ResourceTimelineProps,
   model: Model,
   message: Message,
+  events: EditorEvents,
 }).make({
   init: () => ({
     collapsedIds: [],

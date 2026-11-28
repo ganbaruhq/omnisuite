@@ -1,16 +1,9 @@
-import { Component } from "@effect/ui";
 import { Html } from "@effect/ui/html";
 import { HtmlScene } from "@effect/ui/html/testing";
-import { Locator } from "@effect/ui/testing";
-import type {
-  CalendarEventInput,
-  CalendarNodeInput,
-  EditingInput,
-  EventProposal,
-} from "@omnisuite/calendar-core";
+import { Locator, type Steps } from "@effect/ui/testing";
+import type { CalendarEventInput, CalendarNodeInput, EditingInput } from "@omnisuite/calendar-core";
 import { Effect } from "effect";
 import { describe, expect, it } from "vite-plus/test";
-import { NotifyProposal, NotifyRuleError } from "./editor.js";
 import { PointerFact, TimelinePointer } from "./pointer.js";
 import { ResourceTimeline, type ResourceTimelineProps } from "./resource-timeline.js";
 
@@ -39,8 +32,6 @@ const editing: EditingInput = {
   resourceEditable: true,
   durationEditable: true,
 };
-const onProposal = () => {};
-const onRuleError = () => {};
 
 const propsOf = (overrides: Partial<ResourceTimelineProps> = {}): ResourceTimelineProps => ({
   range: { start: "2026-10-26T00:00Z", end: "2026-10-27T00:00Z" },
@@ -48,8 +39,6 @@ const propsOf = (overrides: Partial<ResourceTimelineProps> = {}): ResourceTimeli
   resources,
   events: [emma, liam],
   editing,
-  onProposal,
-  onRuleError,
   ...overrides,
 });
 
@@ -118,12 +107,17 @@ const press = (fields: Partial<Parameters<typeof PointerFact.Pressed>[0]> = {}) 
     ...fields,
   });
 
-const proposalsOf = (
-  pending: ReadonlyArray<{ readonly command: { readonly name: string; readonly args: unknown } }>,
-) =>
-  pending
-    .filter(({ command }) => command.name === "NotifyProposal")
-    .map(({ command }) => (command.args as { proposal: EventProposal }).proposal);
+/** Acknowledges the events emitted since the last acknowledgement, matching them to `expected`. */
+const emittedLike =
+  (expected: ReadonlyArray<object>) =>
+  <S extends Steps.Steps.Any>(scene: S): S => {
+    let events: ReadonlyArray<unknown> = [];
+    scene.check(({ emitted }) => {
+      events = emitted;
+      expect(emitted).toMatchObject(expected);
+    });
+    return events.length === 0 ? scene : scene.emitted(...(events as [unknown, ...unknown[]]));
+  };
 
 describe("ResourceTimeline editing", () => {
   it("marks what can be edited and draws a handle on each resizable edge", () =>
@@ -206,22 +200,25 @@ describe("ResourceTimeline editing", () => {
           )
           .mounted(TimelinePointer, PointerFact.Released({ canceled: false }))
           .expectMount(pointer)
-          .check(({ pending }) => {
-            const [proposal] = proposalsOf(pending);
-            expect(proposalsOf(pending)).toHaveLength(1);
-            expect(proposal).toMatchObject({
-              operation: "move",
-              eventId: "emma",
-              sourceResourceId: "room-101",
-              targetResourceId: "room-102",
-              after: {
-                start: "2026-10-26T10:30:00Z",
-                end: "2026-10-26T11:30:00Z",
-                resourceIds: ["room-102"],
+          .expectNone()
+          .pipe(
+            emittedLike([
+              {
+                _tag: "Proposed",
+                proposal: {
+                  operation: "move",
+                  eventId: "emma",
+                  sourceResourceId: "room-101",
+                  targetResourceId: "room-102",
+                  after: {
+                    start: "2026-10-26T10:30:00Z",
+                    end: "2026-10-26T11:30:00Z",
+                    resourceIds: ["room-102"],
+                  },
+                },
               },
-            });
-          })
-          .resolve(NotifyProposal, Component.noop)
+            ]),
+          )
           .expect(root)
           .toHaveAttribute("data-gesture", false)
           .expect(preview)
@@ -308,16 +305,19 @@ describe("ResourceTimeline editing", () => {
           )
           .mounted(TimelinePointer, PointerFact.Released({ canceled: false }))
           .expectMount(pointer)
-          .check(({ pending }) =>
-            expect(proposalsOf(pending)).toMatchObject([
+          .expectNone()
+          .pipe(
+            emittedLike([
               {
-                operation: "resize",
-                edge: "end",
-                after: { start: "2026-10-26T09:00:00Z", end: "2026-10-26T11:30:00Z" },
+                _tag: "Proposed",
+                proposal: {
+                  operation: "resize",
+                  edge: "end",
+                  after: { start: "2026-10-26T09:00:00Z", end: "2026-10-26T11:30:00Z" },
+                },
               },
             ]),
-          )
-          .resolve(NotifyProposal, Component.noop);
+          );
       }),
     ));
 
@@ -380,15 +380,17 @@ describe("ResourceTimeline editing", () => {
           .mounted(TimelinePointer, press())
           .expectMount(following("room-101"))
           .mounted(TimelinePointer, PointerFact.Moved({ slot: 11, targetResourceId: "room-102" }))
-          .check(({ pending }) => {
-            expect(pending.map(({ command }) => command.name)).toEqual(["NotifyRuleError"]);
-            expect(pending[0]!.command.args).toMatchObject({ error, rule: "allow" });
-          })
-          .resolve(NotifyRuleError, Component.noop)
+          .expectNone()
+          .pipe(
+            emittedLike([
+              { _tag: "RuleFailed", error, rule: "allow", proposal: { eventId: "emma" } },
+            ]),
+          )
           .expect(preview)
           .toHaveAttributes({ "data-status": "rejected", "data-rule": "allow" })
           .mounted(TimelinePointer, PointerFact.Moved({ slot: 12, targetResourceId: "room-102" }))
-          .expectNone();
+          .expectNone()
+          .pipe(emittedLike([]));
       }),
     ));
 });

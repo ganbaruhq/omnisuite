@@ -54,9 +54,9 @@ async function mount({ acceptProposals = true } = {}) {
           queries,
           editing: sampleEditing,
           acceptProposals,
-          onProposal: (proposal) => proposals.push(proposal),
         },
         container,
+        { onEmit: (event) => proposals.push(event.proposal) },
       ),
     ),
   );

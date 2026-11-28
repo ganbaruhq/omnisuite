@@ -1,4 +1,4 @@
-import { Subscription, UiSchema } from "@effect/ui";
+import { Command, Component, Subscription, UiSchema } from "@effect/ui";
 import { Html } from "@effect/ui/html";
 import { HtmlPlay } from "@effect/ui/html/testing";
 import { Locator, TestHost } from "@effect/ui/testing";
@@ -12,10 +12,11 @@ import {
 } from "@omnisuite/calendar-core";
 import { Effect, Layer, Queue, Schema, Stream } from "effect";
 import { describe, expect, it } from "vite-plus/test";
-import { ResourceTimeline } from "./index.js";
+import { declared, isObject, ResourceTimeline } from "./index.js";
 
 // Keyboard editing as calendar-react's browser tests drive it, on the same fixture: the keys go
-// to the focused event, the application applies each proposal to its events, or ignores it.
+// to the focused event, and the application, receiving the timeline's events in its own update,
+// applies each proposal to its events, or ignores it.
 
 const resources: readonly CalendarNodeInput[] = [
   { id: "floor", title: "Floor", kind: "group" },
@@ -46,8 +47,10 @@ const eventStore = (events: readonly CalendarEventInput[], accept: boolean) => {
   let current = events;
   const listeners = new Set<() => void>();
   const proposals: EventProposal[] = [];
+  const errors: (readonly [rule: string, error: unknown])[] = [];
   return {
     proposals,
+    errors,
     get: () => current,
     set: (next: readonly CalendarEventInput[]) => {
       current = next;
@@ -57,7 +60,7 @@ const eventStore = (events: readonly CalendarEventInput[], accept: boolean) => {
       listeners.add(listener);
       return () => listeners.delete(listener);
     },
-    onProposal: (proposal: EventProposal) => {
+    answer: (proposal: EventProposal) => {
       proposals.push(proposal);
       if (!accept) return;
       current = current.map((event) => (event.id === proposal.eventId ? proposal.after : event));
@@ -67,17 +70,37 @@ const eventStore = (events: readonly CalendarEventInput[], accept: boolean) => {
 };
 type EventStore = ReturnType<typeof eventStore>;
 
-const HarnessMessage = UiSchema.TaggedEnum({ Changed: {} });
+const HarnessMessage = UiSchema.TaggedEnum({
+  Changed: {},
+  GotProposal: { proposal: declared<EventProposal>(isObject) },
+  GotRuleError: { rule: Schema.String, error: Schema.Unknown },
+});
 
 interface Extra {
-  readonly onRuleError?: (error: unknown, context: { readonly rule: string }) => void;
   readonly describe?: (preview: PreviewDescription) => string;
 }
 
-const Harness = (store: EventStore, editing: EditingInput | undefined, extra: Extra = {}) =>
-  Html.component({ name: "Harness", model: Schema.Number, message: HarnessMessage }).make({
+const Harness = (store: EventStore, editing: EditingInput | undefined, extra: Extra = {}) => {
+  // The application's answers, run by its update: the store applies a proposal or not, and
+  // keeps the rule errors it was told of.
+  const Answer = Command.make(
+    "Answer",
+    { args: { proposal: declared<EventProposal>(isObject) } },
+    ({ proposal }) => Effect.sync(() => store.answer(proposal)).pipe(Effect.as(Component.noop)),
+  );
+  const Report = Command.make(
+    "Report",
+    { args: { rule: Schema.String, error: Schema.Unknown } },
+    ({ rule, error }) =>
+      Effect.sync(() => store.errors.push([rule, error])).pipe(Effect.as(Component.noop)),
+  );
+  return Html.component({ name: "Harness", model: Schema.Number, message: HarnessMessage }).make({
     init: () => 0,
-    update: { Changed: ($) => $.model + 1 },
+    update: {
+      Changed: ($) => $.model + 1,
+      GotProposal: ($, { proposal }) => $.run(Answer.make({ proposal })),
+      GotRuleError: ($, { rule, error }) => $.run(Report.make({ rule, error })),
+    },
     subscriptions: () => [
       Subscription.make("events", [], () =>
         Stream.callback<typeof HarnessMessage.Type>((queue) =>
@@ -98,8 +121,11 @@ const Harness = (store: EventStore, editing: EditingInput | undefined, extra: Ex
           resources,
           events: store.get(),
           ...(editing && { editing }),
-          onProposal: store.onProposal,
           ...extra,
+        },
+        onEmit: {
+          Proposed: ({ proposal }) => HarnessMessage.GotProposal({ proposal }),
+          RuleFailed: ({ rule, error }) => HarnessMessage.GotRuleError({ rule, error }),
         },
         view: (timeline) => {
           if (timeline.status === "invalid") return h.p(`Invalid: ${timeline.error.message}`);
@@ -136,6 +162,7 @@ const Harness = (store: EventStore, editing: EditingInput | undefined, extra: Ex
         },
       }),
   });
+};
 
 /** The occurrences focused through the host, in order. */
 let focused: string[] = [];
@@ -243,20 +270,15 @@ describe("ResourceTimeline keyboard editing", () => {
 
   it("reports a rule that throws once per gesture, and rejects its destination", () => {
     const store = eventStore(initial, true);
-    const errors: unknown[] = [];
     const failure = new Error("rule failed");
     return played(
       Effect.gen(function* () {
-        const play = yield* mount(
-          store,
-          {
-            ...half,
-            allow: () => {
-              throw failure;
-            },
+        const play = yield* mount(store, {
+          ...half,
+          allow: () => {
+            throw failure;
           },
-          { onRuleError: (error, { rule }) => errors.push([rule, error]) },
-        );
+        });
         const event = occurrence("standup", "r1");
 
         yield* play.keydown(event, "Enter");
@@ -264,7 +286,7 @@ describe("ResourceTimeline keyboard editing", () => {
         yield* play.keydown(event, "ArrowRight");
         yield* play.expect(preview).toHaveAttribute("data-rule", "allow");
         yield* play.expect(status).toHaveText(/a rule failed/);
-        expect(errors).toEqual([["allow", failure]]);
+        expect(store.errors).toEqual([["allow", failure]]);
 
         yield* play.keydown(event, "Enter");
         yield* play.expect(calendar).toHaveAttribute("data-cancel-reason", "rejected");

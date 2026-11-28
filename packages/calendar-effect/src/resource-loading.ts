@@ -38,6 +38,9 @@ export interface ResourceLoadingOptions<TError = unknown> {
    * calendar neither fetches nor caches: start or reuse a query here and return a function that
    * stops observing it. That function runs when a later page is asked for, when the parent
    * collapses, and when the timeline goes away.
+   *
+   * An observer rather than an event: the observation is scoped to what the timeline shows,
+   * and its end, which the timeline decides, is not a message the application could answer.
    */
   readonly onLoad?: ResourceObserver | undefined;
 }

@@ -21,6 +21,9 @@ export interface WindowLoadingOptions<TError = unknown> {
    * Called once for each window the timeline shows, and again after `retry` when it failed. The
    * calendar neither fetches nor caches: start or reuse a query here and return a function that
    * stops observing it. That function runs when the window changes or the timeline goes away.
+   *
+   * An observer rather than an event: the observation is scoped to what the timeline shows,
+   * and its end, which the timeline decides, is not a message the application could answer.
    */
   readonly onLoadWindow?: WindowObserver | undefined;
 }

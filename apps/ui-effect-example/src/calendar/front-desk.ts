@@ -1,4 +1,4 @@
-import { Subscription, UiSchema } from "@effect/ui";
+import { Command, Component, Subscription, UiSchema } from "@effect/ui";
 import { Html } from "@effect/ui/html";
 import {
   timelineViewResult,
@@ -9,7 +9,7 @@ import {
   type TimelineRow,
   type TimelineView,
 } from "@omnisuite/calendar-core";
-import { declared, ResourceTimeline } from "@omnisuite/calendar-effect";
+import { declared, isObject, ResourceTimeline } from "@omnisuite/calendar-effect";
 import { Button } from "@omnisuite/ui/effect/components/button";
 import { cn } from "cn";
 import { Effect, Queue, Schema, Stream } from "effect";
@@ -32,7 +32,8 @@ import type { WindowQueries } from "./window-queries";
 // The React example's "Front desk" board, drawn with @omnisuite/calendar-effect: the same
 // toolbar, rows, axis and events, with the same classes. With `queries` it loads events window by
 // window as the viewer moves through time; with `resourceQueries` it loads the rooms a page or a
-// branch at a time; and with `editing` its events move and resize, by pointer or keyboard.
+// branch at a time; and with `editing` its events move and resize, by pointer or keyboard, and
+// the board decides on each proposal in its own update.
 
 export type SampleEvent = SampleBoard["events"][number];
 export type SampleProposal = EventProposal<{ kind: StayKind }>;
@@ -55,6 +56,12 @@ const Message = UiSchema.TaggedEnum({
   ClickedPrevious: {},
   ClickedNext: {},
   ChangedQueries: {},
+  Proposed: { proposal: declared<SampleProposal>(isObject) },
+});
+
+/** What the board emits: each proposal the calendar made, once the board has decided on it. */
+export const FrontDeskEvents = UiSchema.TaggedEnum({
+  Proposed: { proposal: declared<SampleProposal>(isObject) },
 });
 
 const viewOf = (model: {
@@ -100,19 +107,20 @@ const watchQueries = (name: string, queries: { subscribe(listener: () => void): 
   );
 
 /**
- * The application's answer to a proposal: the calendar changes nothing itself, so the board
- * accepts a proposal by updating the event it loaded, which publishes new events to the page.
+ * Accepts a proposal: the calendar changes nothing itself, so the board updates the event in the
+ * application's query cache, which publishes new events to the page.
  */
-const proposalHandlerOf =
-  (props: {
-    readonly queries?: WindowQueries<SampleEvent> | undefined;
-    readonly onProposal?: ((proposal: SampleProposal) => void) | undefined;
-    readonly acceptProposals?: boolean | undefined;
-  }) =>
-  (proposal: SampleProposal) => {
-    props.onProposal?.(proposal);
-    if (props.acceptProposals !== false) props.queries?.update(proposal.after);
-  };
+const AcceptProposal = Command.make(
+  "AcceptProposal",
+  {
+    args: {
+      queries: declared<WindowQueries<SampleEvent>>(isObject),
+      proposal: declared<SampleProposal>(isObject),
+    },
+  },
+  ({ queries, proposal }) =>
+    Effect.sync(() => queries.update(proposal.after)).pipe(Effect.as(Component.noop)),
+);
 
 const problems = <Msg>(h: Html.H<Msg>, issues: readonly TimelineInputIssue[]) =>
   h.div
@@ -137,10 +145,11 @@ const Board = <Msg>(
     readonly queries: WindowQueries<SampleEvent> | undefined;
     readonly resourceQueries: ResourceQueries | undefined;
     readonly editing: EditingInput<{ kind: StayKind }> | undefined;
-    readonly onProposal: ((proposal: SampleProposal) => void) | undefined;
+    /** The message for a proposal the calendar emits. */
+    readonly proposed: (proposal: SampleProposal) => Msg;
   },
 ) => {
-  const { view, preset, input, queries, resourceQueries, editing, onProposal } = options;
+  const { view, preset, input, queries, resourceQueries, editing, proposed } = options;
   const loaded = queries?.getSnapshot();
   const loadedResources = resourceQueries?.getSnapshot();
   const axisWidth = slotWidth[preset];
@@ -153,7 +162,11 @@ const Board = <Msg>(
       resourceLoading: resourceQueries &&
         loadedResources && { coverage: loadedResources.coverage, onLoad: resourceQueries.observe },
       ...(editing && { editing }),
-      ...(onProposal && { onProposal }),
+    },
+    onEmit: {
+      Proposed: ({ proposal }) => proposed(proposal),
+      // The sample rules do not throw; a rejected destination is shown on the preview.
+      RuleFailed: () => undefined,
     },
     view: (timeline) => {
       if (timeline.status === "invalid") return problems(h, timeline.error.issues);
@@ -423,10 +436,6 @@ export const FrontDesk = Html.component({
     editing: Schema.optional(
       declared<EditingInput<{ kind: StayKind }>>((u) => typeof u === "object" && u !== null),
     ),
-    /** Called with each proposal the calendar makes, before the board decides on it. */
-    onProposal: Schema.optional(
-      declared<(proposal: SampleProposal) => void>((u) => typeof u === "function"),
-    ),
     /**
      * Whether the board accepts proposals, by updating the event in `queries`. Defaults to true;
      * without `queries` there is nothing to update, so proposals are only reported.
@@ -440,6 +449,7 @@ export const FrontDesk = Html.component({
     revision: Schema.Number,
   }),
   message: Message,
+  events: FrontDeskEvents,
 }).make({
   init: ({ props }) => ({
     anchor: props.anchor ?? "2026-10-26T12:00Z",
@@ -453,6 +463,12 @@ export const FrontDesk = Html.component({
     ClickedPrevious: ($) => $.evolve({ anchor: moved($.model, -1) }),
     ClickedNext: ($) => $.evolve({ anchor: moved($.model, 1) }),
     ChangedQueries: ($) => $.evolve({ revision: (revision) => revision + 1 }),
+    Proposed: ($, { proposal }) => {
+      const reported = $.emit(FrontDeskEvents.Proposed({ proposal }));
+      return $.props.acceptProposals !== false && $.props.queries
+        ? reported.run(AcceptProposal.make({ queries: $.props.queries, proposal }))
+        : reported;
+    },
   },
   subscriptions: ({ props }) => [
     ...(props.queries ? [watchQueries("queries", props.queries)] : []),
@@ -530,7 +546,7 @@ export const FrontDesk = Html.component({
               queries: props.queries,
               resourceQueries: props.resourceQueries,
               editing: props.editing,
-              onProposal: props.editing && proposalHandlerOf(props),
+              proposed: (proposal) => Message.Proposed({ proposal }),
             })
           : problems(h, view.failure.issues),
       );
