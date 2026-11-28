@@ -8,10 +8,23 @@ Shared packages published to npm under the `@omnisuite` scope.
 | `@omnisuite/calendar-core`  | Headless calendar and resource timeline model (Effect, Temporal). |
 | `@omnisuite/calendar-react` | React bindings: the resource timeline, hosts and loading hooks.   |
 
-`packages/` holds what is published; `apps/` holds private tooling:
+`packages/` holds these published packages and two private workspace packages, which are never
+published (`"private": true`):
+
+- `packages/calendar-effect` (`@omnisuite/calendar-effect`): Effect UI bindings for
+  `@omnisuite/calendar-core`, the resource timeline drawn with Effect UI. Like the Effect UI
+  components under `@omnisuite/ui/effect/*`, it is workspace-only until Effect UI is released.
+- `packages/calendar-sample-data` (`@omnisuite/calendar-sample-data`): the sample hostel board and
+  the window and resource query clients that both calendar examples show.
+
+`apps/` holds private tooling:
 
 - `apps/storybook`: the `@omnisuite/ui` stories.
 - `apps/calendar-example`: a showcase and browser tests for the calendar packages.
+- `apps/ui-effect-example`: a showcase and browser tests for the Effect UI components and
+  `@omnisuite/calendar-effect`.
+
+`pnpm run check` runs the browser tests of both examples (`test:browser`).
 
 ## Develop
 
@@ -21,6 +34,7 @@ pnpm --filter @omnisuite/calendar-example exec playwright install chromium
 pnpm run check                               # lint, typecheck, unit and browser tests
 pnpm storybook                               # http://localhost:6006
 pnpm --filter @omnisuite/calendar-example dev
+pnpm --filter @omnisuite/ui-effect-example dev
 ```
 
 Packages declare explicit version ranges rather than `catalog:`, because the platform repo
