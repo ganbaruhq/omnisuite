@@ -1,3 +1,9 @@
+export type { EditorPreview, TimelineEditor } from "./editor.js";
+export type {
+  ResourceLoading,
+  ResourceLoadingOptions,
+  ResourceScopeLoading,
+} from "./resource-loading.js";
 export {
   ResourceTimeline,
   ResourceTimelineProps,

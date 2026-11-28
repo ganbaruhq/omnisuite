@@ -1,4 +1,4 @@
-import { Component, Subscription, UiSchema } from "@effect/ui";
+import { Component, Mount, Subscription, UiSchema } from "@effect/ui";
 import { Html, HtmlCommand } from "@effect/ui/html";
 import {
   collapsedIdsOf,
@@ -54,6 +54,18 @@ import {
   reevaluateKeyboard,
   type KeyboardStep,
 } from "./keyboard.js";
+import {
+  idleResourceLoading,
+  requestResources,
+  resourceLoadingOf,
+  ResourceLoadingState,
+  resourceSubscriptions,
+  reviewResources,
+  WatchListEnd,
+  type ResourceLoading,
+  type ResourceLoadingOptions,
+  type ResourceScopeLoading,
+} from "./resource-loading.js";
 import { loadWindow, windowOf, type WindowLoadingOptions } from "./window-loading.js";
 
 const declared = <T>(is: (u: unknown) => boolean) => Schema.declare((u): u is T => is(u));
@@ -79,6 +91,11 @@ export const ResourceTimelineProps = Schema.Struct({
    * reports what `coverage` says about it. Without it the supplied events are all there is.
    */
   loading: Schema.optional(declared<WindowLoadingOptions>(isObject)),
+  /**
+   * Turns resource loading on: the children of a parent with `lazyChildren` are asked for from
+   * `onLoad` when it is first expanded, and the top level when `listEnd` comes into view.
+   */
+  resourceLoading: Schema.optional(declared<ResourceLoadingOptions>(isObject)),
   /**
    * Turns editing on: a focused event moves with Enter or Space and the arrows, and resizes with
    * Alt or Shift and the arrows. Without it the timeline is read-only. Invalid options make the
@@ -107,6 +124,7 @@ const Model = Schema.Struct({
   signalled: Schema.Record(Schema.String, Schema.Number),
   ...editorFields,
   focusAfter: Schema.NullOr(Schema.Struct({ occurrenceId: Schema.String, layout: Schema.Number })),
+  resources: ResourceLoadingState,
 });
 type Model = typeof Model.Type;
 
@@ -119,6 +137,11 @@ const Message = UiSchema.TaggedEnum({
   Reconciled: {},
   /** The events may have changed since a keyboard edit was proposed. */
   FocusDue: {},
+  /** What resource loading reads may have changed. */
+  ReviewedResources: {},
+  /** The viewer asked for a scope again: its failed page, or its next page. */
+  RequestedResources: { parentId: Schema.NullOr(Schema.String) },
+  SawListEnd: { visible: Schema.Boolean },
 });
 
 // Used only for their pure `transition`: each instance keeps its own snapshot in its model.
@@ -261,6 +284,17 @@ const appliedKeyboard = <Next>(
         : step.state,
   });
 
+/** What resource loading works against now. */
+const resourceContextOf = (props: ResourceTimelineProps, model: Model) => {
+  const result = decode(props);
+  const rows = result._tag === "Success" ? result.success.rows : undefined;
+  return {
+    rows,
+    collapsedIds: rows ? collapsedIdsOf(rows, expansionOf(model)) : new Set<string>(),
+    options: props.resourceLoading,
+  };
+};
+
 /** The window the timeline needs now, and what the application knows about it. */
 export interface ResourceTimelineLoading<TError = unknown> {
   readonly window: TimelineWindow;
@@ -301,6 +335,7 @@ export const ResourceTimeline = Html.component({
     signalled: {},
     ...idleEditor,
     focusAfter: null,
+    resources: idleResourceLoading,
   }),
   update: {
     ClickedDisclosure: ($, { id }) => {
@@ -350,6 +385,18 @@ export const ResourceTimeline = Html.component({
         ? next.run(HtmlCommand.focus(EventRef.at(wanted.occurrenceId), () => Component.noop))
         : next;
     },
+    ReviewedResources: ($) => {
+      const next = reviewResources($.model.resources, resourceContextOf($.props, $.model));
+      return next === $.model.resources ? $.model : $.evolve({ resources: () => next });
+    },
+    RequestedResources: ($, { parentId }) => {
+      const next = requestResources($.model.resources, $.props.resourceLoading?.coverage, parentId);
+      return next === $.model.resources ? $.model : $.evolve({ resources: () => next });
+    },
+    SawListEnd: ($, { visible }) =>
+      $.model.resources.listEndVisible === visible
+        ? $.model
+        : $.evolve({ resources: (resources) => ({ ...resources, listEndVisible: visible }) }),
   },
   subscriptions: ({ model, props }) => {
     // A change to the events or the rules under a gesture cancels it when the dragged event is
@@ -371,13 +418,19 @@ export const ResourceTimeline = Html.component({
           ),
         ]
       : [];
+    const resources = resourceSubscriptions(
+      model.resources,
+      { ...resourceContextOf(props, model), layout: layoutIdOf(decode(props)) },
+      () => Message.ReviewedResources(),
+    );
     const window = windowOf(decode(props), props.loading);
     const onLoadWindow = props.loading?.onLoadWindow;
-    if (!window || !onLoadWindow) return [...reconciling, ...focusing];
+    if (!window || !onLoadWindow) return [...reconciling, ...focusing, ...resources];
     const attempt = windowAttemptOf(model.retries, window.key);
     return [
       ...reconciling,
       ...focusing,
+      ...resources,
       Subscription.make("window", [window.key, attempt], () =>
         loadWindow({
           window,
@@ -575,6 +628,36 @@ export const ResourceTimeline = Html.component({
     const retryPart = p.part("button", (b) =>
       b.attr("type", "button").on("click", Message.ClickedRetryWindow()),
     );
+    const resourceLoading = resourceLoadingOf(p.props.resourceLoading);
+    const listEndPart = p.part("div", (b) => {
+      const list = resourceLoading?.list;
+      const marked = b.attrs({
+        "data-timeline-list-end": "",
+        "data-status": list?.state.status,
+        "data-has-more": flag(list?.hasMore === true),
+      });
+      return resourceLoading
+        ? marked.onMount(
+            WatchListEnd().pipe(Mount.map((visible) => Message.SawListEnd({ visible }))),
+          )
+        : marked;
+    });
+    const scopeStatusPart = p.part("div", (b, loading: ResourceScopeLoading) =>
+      b.attrs({
+        role: "status",
+        "aria-live": loading.state.status === "failed" ? "assertive" : "polite",
+        "aria-atomic": "true",
+        "data-timeline-scope-status": "",
+        "data-parent-id": loading.scope.parentId ?? undefined,
+        "data-status": loading.state.status,
+        "data-has-more": flag(loading.hasMore),
+      }),
+    );
+    const requestPart = p.part("button", (b, loading: ResourceScopeLoading) =>
+      b
+        .attr("type", "button")
+        .on("click", Message.RequestedResources({ parentId: loading.scope.parentId })),
+    );
 
     const parts = {
       root,
@@ -604,6 +687,38 @@ export const ResourceTimeline = Html.component({
        * edit ended. Hide it visually if you like, but keep it rendered; its text is the part's.
        */
       editStatus: statusPart,
+      /**
+       * The element after the last row: the next page of the top level is asked for while it is in
+       * view. It carries the top level's `data-status` and `data-has-more` with resource loading.
+       */
+      listEnd: listEndPart,
+      /**
+       * A live region for one scope, assertive while it has failed; undefined without resource
+       * loading. Draw it under an expanded parent, with `resourceLoading.branch(id)`.
+       */
+      scopeStatus: <B extends Parameters<typeof scopeStatusPart>[0]>(
+        element: B,
+        loading: ResourceScopeLoading,
+      ) => {
+        const built = scopeStatusPart(element, loading);
+        return resourceLoading ? built : undefined;
+      },
+      /** Asks again for a scope's failed page; it does nothing unless the scope has failed. */
+      retryResources: <B extends Parameters<typeof requestPart>[0]>(
+        element: B,
+        loading: ResourceScopeLoading,
+      ) => {
+        const built = requestPart(element, loading);
+        return resourceLoading ? built : undefined;
+      },
+      /** Asks for a scope's next page; it does nothing unless it is loaded with more. */
+      loadMoreResources: <B extends Parameters<typeof requestPart>[0]>(
+        element: B,
+        loading: ResourceScopeLoading,
+      ) => {
+        const built = requestPart(element, loading);
+        return resourceLoading ? built : undefined;
+      },
       /** A native disclosure, or undefined for a row without children. */
       disclosure: <B extends Parameters<typeof disclosurePart>[0]>(
         element: B,
@@ -632,6 +747,8 @@ export const ResourceTimeline = Html.component({
           visibleRows,
           collapsedIds: collapsedIds as ReadonlySet<string>,
           loading,
+          /** The scopes of resources and what is known of them, with `resourceLoading`. */
+          resourceLoading: resourceLoading as ResourceLoading | undefined,
           /** The editor while `editing` is given; undefined while the timeline is read-only. */
           editor: editor as TimelineEditor | undefined,
           ...parts,
