@@ -51,6 +51,11 @@ const frame = () =>
   );
 
 /** Runs a step to the end of the next frame and notes how long it took, in milliseconds. */
+// Each scenario mounts, scrolls and edits thousands of elements in one test. Alone it takes a few
+// seconds, but on a loaded machine (the whole check running at once) it can pass the default
+// 15 seconds, so these suites allow a minute. The assertions are the same either way.
+const datasetTimeout = 60_000;
+
 async function timed<T>(label: string, step: () => Promise<T> | T): Promise<T> {
   const started = performance.now();
   const result = await step();
@@ -173,7 +178,7 @@ async function mountDataset(options: DatasetOptions) {
 
 const placementsOf = (options: DatasetOptions) => options.events * options.resourcesPerEvent;
 
-describe("100 resources, 1,000 events and 1,000 placements", () => {
+describe("100 resources, 1,000 events and 1,000 placements", { timeout: datasetTimeout }, () => {
   it("renders every resource and placement, in the right place", async () => {
     const board = await mountDataset(baselineDataset);
 
@@ -362,7 +367,7 @@ describe("100 resources, 1,000 events and 1,000 placements", () => {
   });
 });
 
-describe("1,000 events and 2,000 placements", () => {
+describe("1,000 events and 2,000 placements", { timeout: datasetTimeout }, () => {
   it("renders each event once for each resource, and keeps them in step", async () => {
     await mountDataset(sharedDataset);
 
@@ -424,7 +429,7 @@ describe("1,000 events and 2,000 placements", () => {
   });
 });
 
-describe("loading at the baseline size", () => {
+describe("loading at the baseline size", { timeout: datasetTimeout }, () => {
   it("pages 100 resources as the list is scrolled and loads the week's 1,000 events", async () => {
     const board = datasetBoard(baselineDataset);
     // The server holds the rooms as one long list, in pages of 25, and the events by window.
