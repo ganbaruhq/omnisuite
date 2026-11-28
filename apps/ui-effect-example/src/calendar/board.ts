@@ -1,6 +1,8 @@
+import type { ResourceScopeLoading } from "@omnisuite/calendar-effect";
 import type {
   CalendarEvent,
   TimelinePreset,
+  TimelineRow,
   TimelineSlot,
   TimelineView,
   TimelineViewOptions,
@@ -77,6 +79,46 @@ export const windowText = {
   pending: "Loading events for this window…",
   "loaded-empty": "No stays or maintenance in this window.",
 } as const;
+
+/**
+ * Where a lazy parent's children end among the visible rows: the status of that branch goes just
+ * after its last descendant, so that "Load more" sits below the children it would add to. Parents
+ * nested in each other end at the same row, innermost first.
+ */
+export function branchEnds(rows: readonly TimelineRow[], collapsedIds: ReadonlySet<string>) {
+  const ends = new Map<number, TimelineRow[]>();
+  rows.forEach((row, index) => {
+    if (!row.resource.lazyChildren || collapsedIds.has(row.resource.id)) return;
+    let last = index;
+    while (rows[last + 1] && rows[last + 1]!.depth > row.depth) last += 1;
+    ends.set(last, [row, ...(ends.get(last) ?? [])]);
+  });
+  return ends;
+}
+
+/** What the example says about a branch that is not simply loaded, and the action it offers. */
+export function scopeText(branch: ResourceScopeLoading, title: string) {
+  switch (branch.state.status) {
+    case "pending":
+      return { message: "Loading…" };
+    case "failed":
+      return {
+        message: `Could not load what is under ${title}.`,
+        action: { verb: "Retry", label: "Retry loading", kind: "retry" as const },
+      };
+    case "loaded-empty":
+      return { message: `Nothing to show under ${title}.` };
+    case "loaded":
+      return branch.hasMore
+        ? {
+            message: "More are available.",
+            action: { verb: "Load more", label: "Load more under", kind: "more" as const },
+          }
+        : undefined;
+    default:
+      return undefined;
+  }
+}
 
 /** The range as text in its own time zone. */
 export function rangeOf({ range, timeZone }: Pick<TimelineView, "range" | "timeZone">) {
