@@ -26,7 +26,10 @@ export const Tooltip = restyle(
       popoverReset,
       "isolate z-50",
     );
-    const popup = stylePart(tooltip.popup, "tooltip-content", tooltipContentClasses);
+    // The kit spaces the popup from the trigger with padding on the positioner, where Base UI
+    // moves the positioner, so the popup is the arrow's box here: the arrow then sits where it
+    // does in React.
+    const popup = stylePart(tooltip.popup, "tooltip-content", tooltipContentClasses, "relative");
     const arrow = stylePart(tooltip.arrow, "tooltip-arrow", tooltipArrowClasses);
     return {
       ...tooltip,

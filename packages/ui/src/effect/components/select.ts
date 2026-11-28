@@ -15,6 +15,7 @@ import {
   selectValueClasses,
 } from "@omnisuite/ui/lib/recipes/select";
 import { labelClasses } from "@omnisuite/ui/lib/recipes/label";
+import { fieldLabelClasses } from "@omnisuite/ui/lib/recipes/field";
 import { Icon } from "@omnisuite/ui/effect/lib/icons";
 import {
   popoverReset,
@@ -99,7 +100,9 @@ export const Select = restyle(KitSelect, (select) => {
   );
   return {
     ...select,
-    label: stylePart(select.label, "select-label", labelClasses),
+    // The kit's label names the trigger, the part React leaves to a `FieldLabel`, so it looks
+    // like one.
+    label: stylePart(select.label, "select-label", labelClasses, ...fieldLabelClasses),
     trigger,
     value,
     icon,
