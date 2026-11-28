@@ -1,5 +1,5 @@
 import { createStoreLogic } from "@xstate/store";
-import type { EditEvaluation, ResizeEdge } from "./editing.js";
+import type { EditEvaluation, EditRule, ResizeEdge } from "./editing.js";
 import { occurrenceIdOf } from "./timeline.js";
 
 /** Whether a gesture moves an event or resizes one of its edges. */
@@ -45,6 +45,19 @@ export interface EditGesture<TEventData = unknown> {
    */
   readonly targetResourceId: string;
   readonly preview: GesturePreview<TEventData> | undefined;
+  /** The rules whose errors this gesture has reported, so that each is reported once. */
+  readonly reportedRules: readonly EditRule[];
+}
+
+/** What begins a gesture: the `gestureStarted` event, as {@link gestureStartOf} gives it. */
+export interface GestureStart {
+  readonly input: "pointer" | "keyboard";
+  readonly operation: EditOperation;
+  /** Required for a resize. */
+  readonly edge?: ResizeEdge;
+  readonly eventId: string;
+  readonly sourceResourceId: string;
+  readonly fingerprint: string;
 }
 
 export interface EditGestureContext<TEventData = unknown> {
@@ -70,18 +83,7 @@ export const editGestureLogic = createStoreLogic({
   context: (): EditGestureContext => ({ gesture: undefined, cancellation: undefined }),
   // A transition returns the whole next context, not a part of it.
   on: {
-    gestureStarted: (
-      context,
-      event: {
-        readonly input: "pointer" | "keyboard";
-        readonly operation: EditOperation;
-        /** Required for a resize. */
-        readonly edge?: ResizeEdge;
-        readonly eventId: string;
-        readonly sourceResourceId: string;
-        readonly fingerprint: string;
-      },
-    ) =>
+    gestureStarted: (context, event: GestureStart) =>
       context.gesture
         ? context
         : {
@@ -97,6 +99,7 @@ export const editGestureLogic = createStoreLogic({
               steps: 0,
               targetResourceId: event.sourceResourceId,
               preview: undefined,
+              reportedRules: [],
             },
           },
     previewChanged: (context, event: { readonly preview: GesturePreview | undefined }) =>
@@ -110,6 +113,16 @@ export const editGestureLogic = createStoreLogic({
     retargeted: (context, event: { readonly resourceId: string }) =>
       context.gesture
         ? { ...context, gesture: { ...context.gesture, targetResourceId: event.resourceId } }
+        : context,
+    ruleReported: (context, event: { readonly rule: EditRule }) =>
+      context.gesture && !context.gesture.reportedRules.includes(event.rule)
+        ? {
+            ...context,
+            gesture: {
+              ...context.gesture,
+              reportedRules: [...context.gesture.reportedRules, event.rule],
+            },
+          }
         : context,
     gestureEnded: (context) => (context.gesture ? { ...context, gesture: undefined } : context),
     gestureCanceled: (context, event: { readonly reason: EditCancelReason }) =>

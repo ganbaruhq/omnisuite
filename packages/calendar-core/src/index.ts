@@ -80,7 +80,18 @@ export {
   type EditGestureContext,
   type EditOperation,
   type GesturePreview,
+  type GestureStart,
 } from "./gesture.js";
+export {
+  canStepGesture,
+  evaluateGesture,
+  gestureRowOf,
+  gestureStartOf,
+  unreportedRuleErrorOf,
+  type GesturePosition,
+  type GestureRequest,
+  type RuleError,
+} from "./gesture-steps.js";
 export {
   intersectsWindow,
   isWindowRetry,

@@ -1,16 +1,19 @@
 import {
+  canStepGesture,
   cancelMessageOf,
   decodeEditingResult,
   describePreviewInEnglish,
   editCapabilityOf,
   editFingerprintOf,
+  evaluateGesture,
   evaluationKeyOf,
+  gestureRowOf,
+  gestureStartOf,
   previewDescriptionOf,
   unchangedMessageOf,
+  unreportedRuleErrorOf,
   untargetedMessageOf,
   editGestureLogic,
-  evaluateMove,
-  evaluateResize,
   occurrenceIdOf,
   previewLayout,
   type CalendarEvent,
@@ -194,12 +197,9 @@ export function useEditor<TResourceData, TEventData>(
   const pointer = useRef<{ startSlot: number; point: Point } | undefined>(undefined);
   // Removes the document listeners that follow a pointer resize.
   const resizeListeners = useRef<(() => void) | undefined>(undefined);
-  const reported = useRef(new Set<EditRule>());
   const shown = useRef("");
   const focusAfter = useRef<string | undefined>(undefined);
 
-  const capabilityOf = (event: CalendarEvent<any>) =>
-    editCapabilityOf(event, latest.current.editing);
   // Read during render, so from the editing given now rather than from the ref.
   const canMove = useCallback(
     (event: CalendarEvent<any>) => editCapabilityOf(event, editing).move,
@@ -228,14 +228,13 @@ export function useEditor<TResourceData, TEventData>(
   /** Shows what releasing the gesture now would do, and reports a rule that threw. */
   const show = (evaluation: EditEvaluation<any> | undefined) => {
     const key = evaluationKeyOf(evaluation);
-    if (evaluation?.status === "rejected" && evaluation.error !== undefined) {
-      if (!reported.current.has(evaluation.rule)) {
-        reported.current.add(evaluation.rule);
-        latest.current.options.onRuleError?.(evaluation.error, {
-          rule: evaluation.rule,
-          proposal: evaluation.proposal,
-        });
-      }
+    const failure = unreportedRuleErrorOf(current(), evaluation);
+    if (failure) {
+      store.trigger.ruleReported({ rule: failure.rule });
+      latest.current.options.onRuleError?.(failure.error, {
+        rule: failure.rule,
+        proposal: failure.proposal,
+      });
     }
     if (key === shown.current) return;
     shown.current = key;
@@ -282,30 +281,14 @@ export function useEditor<TResourceData, TEventData>(
     if (!active || !start) return undefined;
     start.point = point;
     const lane = lanes.current.get(active.sourceResourceId);
-    if (active.operation === "resize") {
-      // An edge follows the pointer along the time axis wherever the pointer is vertically.
-      const evaluation =
-        lane && active.edge
-          ? evaluateResize(latest.current.timeline!, latest.current.editing, {
-              eventId: active.eventId,
-              resourceId: active.sourceResourceId,
-              edge: active.edge,
-              shift: { slots: slotAt(point.x, lane) - start.startSlot },
-            })
-          : undefined;
-      show(evaluation);
-      return evaluation;
-    }
-    const target = targetAt(point);
-    const evaluation =
-      lane && target
-        ? evaluateMove(latest.current.timeline!, latest.current.editing, {
-            eventId: active.eventId,
-            sourceResourceId: active.sourceResourceId,
-            targetResourceId: target,
-            shift: { slots: slotAt(point.x, lane) - start.startSlot },
-          })
-        : undefined;
+    // An edge follows the pointer along the time axis wherever the pointer is vertically.
+    const target = active.operation === "move" ? targetAt(point) : undefined;
+    const evaluation = lane
+      ? evaluateGesture(latest.current.timeline!, latest.current.editing, active, {
+          shift: { slots: slotAt(point.x, lane) - start.startSlot },
+          targetResourceId: target,
+        })
+      : undefined;
     if (target && target !== active.targetResourceId)
       store.trigger.retargeted({ resourceId: target });
     show(evaluation);
@@ -315,21 +298,10 @@ export function useEditor<TResourceData, TEventData>(
   const evaluateKeyboard = (): EditEvaluation<any> | undefined => {
     const active = current();
     if (!active) return undefined;
-    const shift = active.steps !== 0 ? { steps: active.steps } : undefined;
-    const evaluation =
-      active.operation === "resize" && active.edge
-        ? evaluateResize(latest.current.timeline!, latest.current.editing, {
-            eventId: active.eventId,
-            resourceId: active.sourceResourceId,
-            edge: active.edge,
-            ...(shift && { shift }),
-          })
-        : evaluateMove(latest.current.timeline!, latest.current.editing, {
-            eventId: active.eventId,
-            sourceResourceId: active.sourceResourceId,
-            targetResourceId: active.targetResourceId,
-            ...(shift && { shift }),
-          });
+    const evaluation = evaluateGesture(latest.current.timeline!, latest.current.editing, active, {
+      shift: active.steps !== 0 ? { steps: active.steps } : undefined,
+      targetResourceId: active.targetResourceId,
+    });
     show(evaluation);
     return evaluation;
   };
@@ -387,20 +359,18 @@ export function useEditor<TResourceData, TEventData>(
     resourceId: string,
     edge?: ResizeEdge,
   ) => {
-    const event = eventOf(eventId);
-    if (current() || !event) return false;
-    const capability = capabilityOf(event);
-    const allowed = operation === "resize" ? capability.duration : capability.move;
-    if (!allowed) return false;
-    store.trigger.gestureStarted({
-      input,
-      operation,
-      ...(edge && { edge }),
-      eventId,
-      sourceResourceId: resourceId,
-      fingerprint: editFingerprintOf(event),
-    });
-    reported.current.clear();
+    const timeline = latest.current.timeline;
+    const start =
+      timeline &&
+      gestureStartOf(timeline, latest.current.editing, current(), {
+        input,
+        operation,
+        eventId,
+        resourceId,
+        edge,
+      });
+    if (!start) return false;
+    store.trigger.gestureStarted(start);
     shown.current = "";
     setOutcome("");
     return true;
@@ -491,24 +461,16 @@ export function useEditor<TResourceData, TEventData>(
         },
         step: (by) => {
           const active = current();
-          const event = active && eventOf(active.eventId);
-          if (!active || !event) return;
-          const capability = capabilityOf(event);
-          if (!(active.operation === "resize" ? capability.duration : capability.time)) return;
+          const { timeline, editing } = latest.current;
+          if (!active || !timeline || !canStepGesture(timeline, editing, active)) return;
           store.trigger.stepped({ by });
           evaluateKeyboard();
         },
         row: (by) => {
           const active = current();
-          const event = active && eventOf(active.eventId);
-          if (!active || active.operation !== "move" || !event || !capabilityOf(event).resource)
-            return;
-          const ids = latest.current.rows.flatMap((row) =>
-            row.kind === "resource" ? [row.resource.id] : [],
-          );
-          const at = ids.indexOf(active.targetResourceId);
-          const next = ids[at + by];
-          if (at < 0 || next === undefined) return;
+          const { timeline, editing, rows } = latest.current;
+          const next = active && timeline && gestureRowOf(timeline, editing, rows, active, by);
+          if (!active || !next) return;
           store.trigger.retargeted({ resourceId: next });
           evaluateKeyboard();
         },
