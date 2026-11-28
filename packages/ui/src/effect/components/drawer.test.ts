@@ -81,6 +81,9 @@ describe("Effect Drawer", () => {
     expect(popup).toMatch(snapPointsAttribute);
     expect(popup).toContain("group/drawer-popup");
     expect(popup).toContain("data-[swipe-direction=down]:bottom-0");
+    // The kit sets the swipe's progress only on the backdrop; without it the popup's transform,
+    // and with it the swipe's movement, computes to `none`.
+    expect(popup).toContain("[--drawer-swipe-progress:0]");
     const overlay = tag(html, "drawer-overlay");
     expect(overlay).toMatch(snapPointsAttribute);
     expect(overlay).toContain("bg-black/80");
