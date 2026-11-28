@@ -1,4 +1,4 @@
-import { MarkupIcon } from "@omnisuite/ui/effect/lib/markup-icons";
+import { Icon } from "@omnisuite/ui/effect/lib/icons";
 import type { Html } from "@effect/ui/html";
 import { styledSlot } from "@omnisuite/ui/effect/lib/styled";
 import {
@@ -48,7 +48,7 @@ export const BreadcrumbSeparator = <Msg>(
 ) => {
   return styledSlot(options.element ?? h.li, "breadcrumb-separator", ...breadcrumbSeparatorClasses)
     .attrs({ role: "presentation", "aria-hidden": "true" })
-    .children(MarkupIcon(h, "chevron-right"));
+    .children(Icon(h, "chevron-right"));
 };
 
 export const BreadcrumbEllipsis = <Msg>(
@@ -57,7 +57,7 @@ export const BreadcrumbEllipsis = <Msg>(
 ) => {
   return styledSlot(options.element ?? h.span, "breadcrumb-ellipsis", ...breadcrumbEllipsisClasses)
     .attrs({ role: "presentation", "aria-hidden": "true" })
-    .children(MarkupIcon(h, "dots"), h.span.class("sr-only").children("More"));
+    .children(Icon(h, "dots"), h.span.class("sr-only").children("More"));
 };
 
 export const Breadcrumb = <Msg>(h: Pick<Html.H<Msg>, "nav">) =>
